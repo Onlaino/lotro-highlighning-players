@@ -1,5 +1,7 @@
 # Enemy Highlight
 
+**Русский** | [English](README.en.md)
+
 `Enemy Highlight` — плагин для The Lord of the Rings Online, который позволяет
 вручную назначать персонажам пользовательские цветные метки. По умолчанию
 доступны `Friend`, `Neutral` и `Enemy`, но их можно переименовать, перекрасить,

@@ -1,5 +1,7 @@
 # Выпуск релиза Enemy Highlight
 
+**Русский** | [English](releasing.en.md)
+
 Релизы создаются автоматически через GitHub Actions. Workflow находится в
 `.github/workflows/release.yml` и запускается после отправки тега вида `v*`,
 например `v0.1.0`.
