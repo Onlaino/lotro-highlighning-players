@@ -25,7 +25,6 @@ function HighlightPlayers.Launcher.New(storage, mainWindow)
     face:SetPosition(2, 2)
     face:SetSize(width - 4, height - 4)
     face:SetBackground("HighlightPlayers/Resources/launcher.jpg")
-    face:SetStretchMode(1)
     face:SetMouseVisible(false)
 
     local pressed = false

@@ -40,8 +40,8 @@ local function defaultData()
             indicator = {
                 left = Turbine.UI.Display.GetWidth() - 340,
                 top = 65,
-                width = indicator.DefaultWidth,
-                height = indicator.DefaultHeight,
+                maxWidth = indicator.DefaultMaxWidth,
+                maxHeight = indicator.DefaultMaxHeight,
                 locked = true
             }
         }
@@ -129,18 +129,20 @@ local function normalizeLoadedData(loaded)
 
     local indicator = loaded.settings.indicator
     local limits = HighlightPlayers.Constants.Indicator
-    indicator.width = clamp(
-        indicator.width,
+    indicator.maxWidth = clamp(
+        indicator.maxWidth or indicator.width,
         limits.MinWidth,
         limits.MaxWidth,
-        limits.DefaultWidth
+        limits.DefaultMaxWidth
     )
-    indicator.height = clamp(
-        indicator.height,
+    indicator.maxHeight = clamp(
+        indicator.maxHeight or indicator.height,
         limits.MinHeight,
         limits.MaxHeight,
-        limits.DefaultHeight
+        limits.DefaultMaxHeight
     )
+    indicator.width = nil
+    indicator.height = nil
 
     if type(indicator.locked) ~= "boolean" then
         indicator.locked = true

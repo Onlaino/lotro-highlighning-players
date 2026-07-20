@@ -118,21 +118,21 @@ function HighlightPlayers.LabelsWindow.New(
     usageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     usageLabel:SetMultiline(true)
 
-    createLabel(window, 235, 250, 250, "Indicator size (pixels)")
-    local widthCaption = createLabel(window, 235, 275, 45, "Width")
+    createLabel(window, 235, 250, 280, "Automatic indicator limits")
+    local widthCaption = createLabel(window, 235, 275, 45, "Max W")
     widthCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     local widthBox = createTextBox(window, 280, 272, 55)
-    local heightCaption = createLabel(window, 345, 275, 45, "Height")
+    local heightCaption = createLabel(window, 345, 275, 45, "Max H")
     heightCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     local heightBox = createTextBox(window, 392, 272, 55)
-    widthBox:SetText(tostring(indicatorSettings.width))
-    heightBox:SetText(tostring(indicatorSettings.height))
+    widthBox:SetText(tostring(indicatorSettings.maxWidth))
+    heightBox:SetText(tostring(indicatorSettings.maxHeight))
 
     local applySizeButton = Turbine.UI.Lotro.Button()
     applySizeButton:SetParent(window)
     applySizeButton:SetPosition(457, 272)
     applySizeButton:SetSize(78, 22)
-    applySizeButton:SetText("Apply size")
+    applySizeButton:SetText("Apply limits")
 
     local sizeHint = Turbine.UI.Label()
     sizeHint:SetParent(window)
@@ -141,7 +141,9 @@ function HighlightPlayers.LabelsWindow.New(
     sizeHint:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     sizeHint:SetMultiline(true)
     sizeHint:SetForeColor(Turbine.UI.Color(0.70, 0.70, 0.70))
-    sizeHint:SetText("Width 60-300, height 20-80. Position: /eh move")
+    sizeHint:SetText(
+        "The badge grows with its text up to these limits. Position: /eh move"
+    )
 
     local messageLabel = Turbine.UI.Label()
     messageLabel:SetParent(window)
@@ -332,7 +334,10 @@ function HighlightPlayers.LabelsWindow.New(
         if newWidth == nil or newHeight == nil or
             newWidth < limits.MinWidth or newWidth > limits.MaxWidth or
             newHeight < limits.MinHeight or newHeight > limits.MaxHeight then
-            showMessage("Width must be 60-300 and height 20-80.", true)
+            showMessage(
+                "Maximum width must be 60-300 and height 20-80.",
+                true
+            )
             return
         end
 
@@ -340,8 +345,8 @@ function HighlightPlayers.LabelsWindow.New(
         newHeight = math.floor(newHeight)
         widthBox:SetText(tostring(newWidth))
         heightBox:SetText(tostring(newHeight))
-        indicator.ApplySize(newWidth, newHeight)
-        showMessage("Indicator size saved.", false)
+        indicator.ApplyLimits(newWidth, newHeight)
+        showMessage("Automatic size limits saved.", false)
     end
 
     redBox.TextChanged = updatePreview
@@ -356,8 +361,8 @@ function HighlightPlayers.LabelsWindow.New(
             height
         )
         window:SetPosition(newLeft, newTop)
-        widthBox:SetText(tostring(indicatorSettings.width))
-        heightBox:SetText(tostring(indicatorSettings.height))
+        widthBox:SetText(tostring(indicatorSettings.maxWidth))
+        heightBox:SetText(tostring(indicatorSettings.maxHeight))
 
         loadLabel(labels:GetById(selectedId) or labels:GetFirst())
 

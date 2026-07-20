@@ -9,9 +9,10 @@ function HighlightPlayers.Indicator.New(
     targetTracker
 )
     local settings = storage:GetData().settings.indicator
+    local limits = HighlightPlayers.Constants.Indicator
     local window = Turbine.UI.Window()
-    local width = settings.width
-    local height = settings.height
+    local width = limits.MinWidth
+    local height = limits.MinHeight
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -39,22 +40,14 @@ function HighlightPlayers.Indicator.New(
     accent:SetParent(window)
     accent:SetMouseVisible(false)
 
-    local swatchBorder = Turbine.UI.Control()
-    swatchBorder:SetParent(window)
-    swatchBorder:SetBackColor(Turbine.UI.Color(0.62, 0.48, 0.22))
-    swatchBorder:SetMouseVisible(false)
-
-    local swatch = Turbine.UI.Control()
-    swatch:SetParent(window)
-    swatch:SetMouseVisible(false)
-
     local badge = Turbine.UI.Label()
     badge:SetParent(window)
-    badge:SetFont(Turbine.UI.Lotro.Font.Verdana12)
+    badge:SetFont(Turbine.UI.Lotro.Font.Verdana10)
     badge:SetForeColor(Turbine.UI.Color(0.96, 0.90, 0.72))
     badge:SetOutlineColor(Turbine.UI.Color.Black)
     badge:SetFontStyle(Turbine.UI.FontStyle.Outline)
     badge:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
+    badge:SetMultiline(true)
     badge:SetMouseVisible(false)
 
     local moving = false
@@ -62,29 +55,69 @@ function HighlightPlayers.Indicator.New(
     local moveY = 0
     local moveMode = settings.locked ~= true
 
-    local function layout()
-        local swatchSize = math.max(8, math.min(14, height - 10))
-        local swatchTop = math.floor((height - swatchSize) / 2)
+    local function getCharacterCount(value)
+        local count = 0
+        local text = tostring(value or "")
 
+        for index = 1, string.len(text) do
+            local byte = string.byte(text, index)
+            if byte < 128 or byte >= 192 then
+                count = count + 1
+            end
+        end
+
+        return math.max(1, count)
+    end
+
+    local function layout()
         frame:SetPosition(1, 1)
         frame:SetSize(width - 2, height - 2)
         panel:SetPosition(2, 2)
         panel:SetSize(width - 4, height - 4)
         accent:SetPosition(3, 3)
         accent:SetSize(4, math.max(8, height - 6))
-        swatchBorder:SetPosition(10, swatchTop)
-        swatchBorder:SetSize(swatchSize, swatchSize)
-        swatch:SetPosition(12, swatchTop + 2)
-        swatch:SetSize(
-            math.max(4, swatchSize - 4),
-            math.max(4, swatchSize - 4)
+        badge:SetPosition(12, 2)
+        badge:SetSize(math.max(10, width - 16), height - 4)
+    end
+
+    local function applyDimensions(newWidth, newHeight)
+        width = math.max(limits.MinWidth, math.min(settings.maxWidth, newWidth))
+        height = math.max(
+            limits.MinHeight,
+            math.min(settings.maxHeight, newHeight)
         )
-        badge:SetPosition(27, 2)
-        badge:SetSize(math.max(10, width - 31), height - 4)
-        badge:SetFont(
-            height >= 30 and Turbine.UI.Lotro.Font.TrajanPro15 or
-            Turbine.UI.Lotro.Font.Verdana12
+
+        window:SetSize(width, height)
+        layout()
+
+        local newLeft, newTop = HighlightPlayers.Util.ClampPosition(
+            window:GetLeft(),
+            window:GetTop(),
+            width,
+            height
         )
+        window:SetPosition(newLeft, newTop)
+        settings.left = newLeft
+        settings.top = newTop
+    end
+
+    local function applyTextDimensions(text)
+        local characterCount = getCharacterCount(text)
+        local characterWidth = 6
+        local horizontalPadding = 16
+        local desiredWidth = characterCount * characterWidth + horizontalPadding
+        local actualWidth = math.max(
+            limits.MinWidth,
+            math.min(settings.maxWidth, desiredWidth)
+        )
+        local charactersPerLine = math.max(
+            1,
+            math.floor((actualWidth - horizontalPadding) / characterWidth)
+        )
+        local lineCount = math.ceil(characterCount / charactersPerLine)
+        local desiredHeight = 8 + lineCount * 12
+
+        applyDimensions(actualWidth, desiredHeight)
     end
 
     local function getCurrentRecord()
@@ -102,11 +135,10 @@ function HighlightPlayers.Indicator.New(
 
         if label ~= nil then
             local color = labels:GetColor(label)
+            local text = moveMode and (label.name .. "  [drag]") or label.name
             accent:SetBackColor(color)
-            swatch:SetBackColor(color)
-            badge:SetText(
-                moveMode and (label.name .. "  [drag]") or label.name
-            )
+            badge:SetText(text)
+            applyTextDimensions(text)
             frame:SetBackColor(
                 moveMode and Turbine.UI.Color(0.82, 0.61, 0.20) or
                 Turbine.UI.Color(0.48, 0.36, 0.17)
@@ -118,9 +150,9 @@ function HighlightPlayers.Indicator.New(
         if moveMode then
             local moveColor = Turbine.UI.Color(0.82, 0.61, 0.20)
             accent:SetBackColor(moveColor)
-            swatch:SetBackColor(moveColor)
             frame:SetBackColor(moveColor)
             badge:SetText("Drag indicator")
+            applyTextDimensions("Drag indicator")
             window:SetVisible(true)
         else
             window:SetVisible(false)
@@ -185,34 +217,22 @@ function HighlightPlayers.Indicator.New(
         end
     end
 
-    window.ApplySize = function(newWidth, newHeight)
-        local limits = HighlightPlayers.Constants.Indicator
-        width = math.max(
+    window.ApplyLimits = function(newMaxWidth, newMaxHeight)
+        settings.maxWidth = math.max(
             limits.MinWidth,
-            math.min(limits.MaxWidth, math.floor(tonumber(newWidth) or width))
+            math.min(
+                limits.MaxWidth,
+                math.floor(tonumber(newMaxWidth) or settings.maxWidth)
+            )
         )
-        height = math.max(
+        settings.maxHeight = math.max(
             limits.MinHeight,
             math.min(
                 limits.MaxHeight,
-                math.floor(tonumber(newHeight) or height)
+                math.floor(tonumber(newMaxHeight) or settings.maxHeight)
             )
         )
 
-        settings.width = width
-        settings.height = height
-        window:SetSize(width, height)
-        layout()
-
-        local newLeft, newTop = HighlightPlayers.Util.ClampPosition(
-            window:GetLeft(),
-            window:GetTop(),
-            width,
-            height
-        )
-        window:SetPosition(newLeft, newTop)
-        settings.left = newLeft
-        settings.top = newTop
         storage:Save()
         update()
     end
@@ -241,8 +261,6 @@ function HighlightPlayers.Indicator.New(
         labels:RemoveListener(labelsListener)
         settings.left = window:GetLeft()
         settings.top = window:GetTop()
-        settings.width = width
-        settings.height = height
         settings.locked = not moveMode
         window:SetVisible(false)
     end
