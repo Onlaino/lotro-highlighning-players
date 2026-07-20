@@ -28,8 +28,8 @@ function HighlightPlayers.MainWindow.New(
     window:SetWantsKeyEvents(true)
     window:SetVisible(false)
 
-    local firstLabel = labels:GetFirst()
-    local selectedLabelId = firstLabel ~= nil and firstLabel.id or nil
+    local allCategoryId = "__all__"
+    local selectedLabelId = allCategoryId
     local searchQueries = {}
     local updatingSearch = false
 
@@ -179,15 +179,31 @@ function HighlightPlayers.MainWindow.New(
     end
 
     window.Refresh = function()
-        if labels:GetById(selectedLabelId) == nil then
-            local fallback = labels:GetFirst()
-            selectedLabelId = fallback ~= nil and fallback.id or nil
+        if selectedLabelId ~= allCategoryId and
+            labels:GetById(selectedLabelId) == nil then
+            selectedLabelId = allCategoryId
             updatingSearch = true
             searchBox:SetText(searchQueries[selectedLabelId] or "")
             updatingSearch = false
         end
 
         categoryList:ClearItems()
+
+        local allButton = Turbine.UI.Lotro.Button()
+        allButton:SetSize(categoryList:GetWidth(), 28)
+        allButton:SetText(
+            "All (" .. tostring(relationships:GetTotalCount()) .. ")"
+        )
+        allButton:SetEnabled(selectedLabelId ~= allCategoryId)
+        allButton.Click = function()
+            selectedLabelId = allCategoryId
+            updatingSearch = true
+            searchBox:SetText(searchQueries[allCategoryId] or "")
+            updatingSearch = false
+            window.Refresh()
+        end
+        categoryList:AddItem(allButton)
+
         for _, label in ipairs(labels:GetAll()) do
             local currentId = label.id
             local button = Turbine.UI.Lotro.Button()
@@ -210,26 +226,56 @@ function HighlightPlayers.MainWindow.New(
 
         list:ClearItems()
         local search = searchQueries[selectedLabelId] or ""
-        local records = relationships:GetList(selectedLabelId, search)
+        local showingAll = selectedLabelId == allCategoryId
+        local records = showingAll and relationships:GetAllList(search) or
+            relationships:GetList(selectedLabelId, search)
         emptyLabel:SetText(
             HighlightPlayers.Util.Trim(search) == "" and
-            "No saved players with this label." or
+            (showingAll and "No saved players." or
+            "No saved players with this label.") or
             "No players match the search."
         )
         emptyLabel:SetVisible(table.getn(records) == 0)
 
         for _, record in ipairs(records) do
             local recordKey = record.key
+            local row = Turbine.UI.Control()
+            row:SetSize(list:GetWidth(), 27)
+
             local item = Turbine.UI.Lotro.Button()
-            item:SetSize(list:GetWidth(), 25)
+            item:SetParent(row)
+            item:SetPosition(1, 1)
+            item:SetSize(row:GetWidth() - 2, 25)
+
+            local label = labels:GetById(record.labelId)
+            local labelSuffix = showingAll and label ~= nil and
+                ("  [" .. label.name .. "]") or ""
             item:SetText(
                 record.name ..
+                labelSuffix ..
                 ((record.note ~= nil and record.note ~= "") and "  *" or "")
             )
             item.Click = function()
                 cardWindow.OpenExisting(recordKey)
             end
-            list:AddItem(item)
+
+            if showingAll and label ~= nil then
+                local swatchBorder = Turbine.UI.Control()
+                swatchBorder:SetParent(row)
+                swatchBorder:SetPosition(1, 1)
+                swatchBorder:SetSize(25, 25)
+                swatchBorder:SetBackColor(Turbine.UI.Color.Black)
+                swatchBorder:SetMouseVisible(false)
+
+                local swatch = Turbine.UI.Control()
+                swatch:SetParent(row)
+                swatch:SetPosition(3, 3)
+                swatch:SetSize(21, 21)
+                swatch:SetBackColor(labels:GetColor(label))
+                swatch:SetMouseVisible(false)
+            end
+
+            list:AddItem(row)
         end
 
         targetButton:SetEnabled(targetTracker:GetCurrentName() ~= nil)
@@ -314,7 +360,9 @@ function HighlightPlayers.MainWindow.New(
             return
         end
 
-        selectedLabelId = result.labelId
+        if selectedLabelId ~= allCategoryId then
+            selectedLabelId = result.labelId
+        end
         window.Refresh()
 
         if persisted then

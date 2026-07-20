@@ -3,12 +3,31 @@ HighlightPlayers = HighlightPlayers or {}
 HighlightPlayers.Relationships = {}
 HighlightPlayers.Relationships.__index = HighlightPlayers.Relationships
 
+local function filterRecords(source, searchValue)
+    local search = HighlightPlayers.Util.NormalizeName(searchValue)
+
+    if search == "" then
+        return source
+    end
+
+    local result = {}
+    for _, record in ipairs(source) do
+        local normalizedName = HighlightPlayers.Util.NormalizeName(record.name)
+        if string.find(normalizedName, search, 1, true) ~= nil then
+            table.insert(result, record)
+        end
+    end
+
+    return result
+end
+
 function HighlightPlayers.Relationships.New(storage, labels)
     local instance = {
         storage = storage,
         labels = labels,
         players = storage:GetData().players,
         byLabel = {},
+        allRecords = {},
         listeners = {}
     }
 
@@ -62,6 +81,7 @@ end
 
 function HighlightPlayers.Relationships:RebuildIndex()
     local index = {}
+    local allRecords = {}
 
     for _, label in ipairs(self.labels:GetAll()) do
         index[label.id] = {}
@@ -72,21 +92,29 @@ function HighlightPlayers.Relationships:RebuildIndex()
             index[record.labelId] = {}
         end
 
-        table.insert(index[record.labelId], {
+        local indexedRecord = {
             key = key,
             name = record.name,
             labelId = record.labelId,
             note = record.note
-        })
+        }
+        table.insert(index[record.labelId], indexedRecord)
+        table.insert(allRecords, indexedRecord)
     end
 
-    for _, records in pairs(index) do
+    local function sortRecords(records)
         table.sort(records, function(left, right)
             return string.lower(left.name) < string.lower(right.name)
         end)
     end
 
+    for _, records in pairs(index) do
+        sortRecords(records)
+    end
+    sortRecords(allRecords)
+
     self.byLabel = index
+    self.allRecords = allRecords
 end
 
 function HighlightPlayers.Relationships:AddListener(listener)
@@ -119,25 +147,19 @@ end
 
 function HighlightPlayers.Relationships:GetList(labelId, searchValue)
     local source = self.byLabel[labelId] or {}
-    local search = HighlightPlayers.Util.NormalizeName(searchValue)
+    return filterRecords(source, searchValue)
+end
 
-    if search == "" then
-        return source
-    end
-
-    local result = {}
-    for _, record in ipairs(source) do
-        local normalizedName = HighlightPlayers.Util.NormalizeName(record.name)
-        if string.find(normalizedName, search, 1, true) ~= nil then
-            table.insert(result, record)
-        end
-    end
-
-    return result
+function HighlightPlayers.Relationships:GetAllList(searchValue)
+    return filterRecords(self.allRecords, searchValue)
 end
 
 function HighlightPlayers.Relationships:GetCount(labelId)
     return table.getn(self.byLabel[labelId] or {})
+end
+
+function HighlightPlayers.Relationships:GetTotalCount()
+    return table.getn(self.allRecords)
 end
 
 function HighlightPlayers.Relationships:SavePlayer(
