@@ -42,8 +42,8 @@ function HighlightPlayers.Indicator.New(
 
     local badge = Turbine.UI.Label()
     badge:SetParent(window)
-    badge:SetFont(Turbine.UI.Lotro.Font.TrajanPro13)
-    badge:SetForeColor(Turbine.UI.Color(0.96, 0.90, 0.72))
+    badge:SetFont(Turbine.UI.Lotro.Font.Calibri14)
+    badge:SetForeColor(Turbine.UI.Color.White)
     badge:SetOutlineColor(Turbine.UI.Color.Black)
     badge:SetFontStyle(Turbine.UI.FontStyle.Outline)
     badge:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
