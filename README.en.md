@@ -203,4 +203,5 @@ PluginData verification must be performed inside the LOTRO client.
 - [Manual test checklist (Russian)](docs/manual-test.md)
 - [Dynamic-label design notes (Russian)](docs/tasks/dynamic-labels.md)
 - [Target API research (Russian)](docs/prototype-test.md)
+- [Development roadmap (Russian)](docs/roadmap.md)
 - [Release instructions](docs/releasing.en.md)

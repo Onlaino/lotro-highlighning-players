@@ -205,4 +205,5 @@ PvMP-персонаж может возвращаться как `Actor`, у к�
 - [Сценарий ручной проверки](docs/manual-test.md)
 - [Проектирование динамических меток](docs/tasks/dynamic-labels.md)
 - [Результат исследования API цели](docs/prototype-test.md)
+- [План развития](docs/roadmap.md)
 - [Инструкция по выпуску релизов](docs/releasing.md)
