@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<Plugin>
+  <Information>
+    <Name>Enemy Highlight</Name>
+    <Author>Onlaino</Author>
+    <Version>0.1.0</Version>
+    <Description>Technical prototype for detecting the currently selected target.</Description>
+  </Information>
+  <Package>HighlightPlayers.Main</Package>
+  <Configuration Apartment="HighlightPlayers" />
+</Plugin>
