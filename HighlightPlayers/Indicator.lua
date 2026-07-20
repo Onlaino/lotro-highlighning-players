@@ -5,8 +5,8 @@ HighlightPlayers.Indicator = {}
 function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
     local settings = storage:GetData().settings.indicator
     local window = Turbine.UI.Window()
-    local width = 132
-    local height = 30
+    local width = 112
+    local height = 26
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -24,7 +24,7 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
     badge:SetParent(window)
     badge:SetPosition(2, 2)
     badge:SetSize(width - 4, height - 4)
-    badge:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    badge:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     badge:SetForeColor(Turbine.UI.Color.Black)
     badge:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter)
     badge:SetMouseVisible(false)
@@ -51,7 +51,7 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
                 HighlightPlayers.Constants.StatusColors[record.status]
             )
             if moveMode then
-                badge:SetText("MOVE: " .. string.upper(record.status))
+                badge:SetText("MOVE / " .. string.upper(record.status))
             else
                 badge:SetText(string.upper(record.status))
             end
@@ -61,7 +61,7 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
 
         if moveMode then
             badge:SetBackColor(Turbine.UI.Color(0.80, 0.80, 0.80))
-            badge:SetText("MOVE INDICATOR")
+            badge:SetText("MOVE")
             window:SetVisible(true)
         else
             window:SetVisible(false)
