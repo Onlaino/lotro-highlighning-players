@@ -35,22 +35,6 @@ function HighlightPlayers.Util.ValidateName(value)
     return true, name
 end
 
-function HighlightPlayers.Util.IsStatus(value)
-    return value == HighlightPlayers.Constants.Status.Friend or
-        value == HighlightPlayers.Constants.Status.Neutral or
-        value == HighlightPlayers.Constants.Status.Enemy
-end
-
-function HighlightPlayers.Util.ParseStatus(value)
-    local status = string.lower(HighlightPlayers.Util.Trim(value))
-
-    if HighlightPlayers.Util.IsStatus(status) then
-        return status
-    end
-
-    return nil
-end
-
 function HighlightPlayers.Util.SafeMethod(object, methodName)
     if object == nil then
         return false, nil, "object is nil"

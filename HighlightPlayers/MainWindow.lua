@@ -5,13 +5,15 @@ HighlightPlayers.MainWindow = {}
 function HighlightPlayers.MainWindow.New(
     storage,
     relationships,
+    labels,
     targetTracker,
-    cardWindow
+    cardWindow,
+    labelsWindow
 )
     local settings = storage:GetData().settings.mainWindow
     local window = Turbine.UI.Lotro.Window()
-    local width = 520
-    local height = 470
+    local width = 620
+    local height = 500
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -26,12 +28,9 @@ function HighlightPlayers.MainWindow.New(
     window:SetWantsKeyEvents(true)
     window:SetVisible(false)
 
-    local selectedTab = HighlightPlayers.Constants.Status.Friend
-    local searchQueries = {
-        friend = "",
-        neutral = "",
-        enemy = ""
-    }
+    local firstLabel = labels:GetFirst()
+    local selectedLabelId = firstLabel ~= nil and firstLabel.id or nil
+    local searchQueries = {}
     local updatingSearch = false
 
     local nameLabel = Turbine.UI.Label()
@@ -44,7 +43,7 @@ function HighlightPlayers.MainWindow.New(
     local nameBox = Turbine.UI.Lotro.TextBox()
     nameBox:SetParent(window)
     nameBox:SetPosition(20, 62)
-    nameBox:SetSize(245, 22)
+    nameBox:SetSize(255, 22)
     nameBox:SetBackColor(Turbine.UI.Color(0.05, 0.05, 0.05))
     nameBox:SetForeColor(Turbine.UI.Color.White)
     nameBox:SetFont(Turbine.UI.Lotro.Font.Verdana14)
@@ -52,71 +51,77 @@ function HighlightPlayers.MainWindow.New(
 
     local targetButton = Turbine.UI.Lotro.Button()
     targetButton:SetParent(window)
-    targetButton:SetPosition(275, 62)
-    targetButton:SetSize(105, 22)
+    targetButton:SetPosition(285, 62)
+    targetButton:SetSize(100, 22)
     targetButton:SetText("Use target")
 
     local addButton = Turbine.UI.Lotro.Button()
     addButton:SetParent(window)
-    addButton:SetPosition(390, 62)
-    addButton:SetSize(110, 22)
+    addButton:SetPosition(395, 62)
+    addButton:SetSize(100, 22)
     addButton:SetText("Add / update")
 
-    local statusLabel = Turbine.UI.Label()
-    statusLabel:SetParent(window)
-    statusLabel:SetPosition(20, 93)
-    statusLabel:SetSize(100, 20)
-    statusLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    statusLabel:SetText("Status")
+    local manageButton = Turbine.UI.Lotro.Button()
+    manageButton:SetParent(window)
+    manageButton:SetPosition(505, 62)
+    manageButton:SetSize(95, 22)
+    manageButton:SetText("Manage labels")
 
-    local statusSelector = HighlightPlayers.StatusSelector.New(
+    local labelTitle = Turbine.UI.Label()
+    labelTitle:SetParent(window)
+    labelTitle:SetPosition(20, 93)
+    labelTitle:SetSize(100, 20)
+    labelTitle:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    labelTitle:SetText("Label")
+
+    local labelSelector = HighlightPlayers.StatusSelector.New(
         window,
         20,
         113,
-        nil
+        labels,
+        nil,
+        340
     )
 
     local messageLabel = Turbine.UI.Label()
     messageLabel:SetParent(window)
-    messageLabel:SetPosition(345, 105)
-    messageLabel:SetSize(155, 35)
+    messageLabel:SetPosition(375, 101)
+    messageLabel:SetSize(225, 40)
     messageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     messageLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
     messageLabel:SetMultiline(true)
     messageLabel:SetVisible(false)
 
-    local tabButtons = {}
-    local searchBox
+    local categoriesTitle = Turbine.UI.Label()
+    categoriesTitle:SetParent(window)
+    categoriesTitle:SetPosition(20, 157)
+    categoriesTitle:SetSize(145, 20)
+    categoriesTitle:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    categoriesTitle:SetText("Labels")
 
-    for index, status in ipairs(HighlightPlayers.Constants.StatusOrder) do
-        local tabStatus = status
-        local button = Turbine.UI.Lotro.Button()
-        button:SetParent(window)
-        button:SetPosition(20 + (index - 1) * 160, 153)
-        button:SetSize(150, 24)
+    local categoryList = Turbine.UI.ListBox()
+    categoryList:SetParent(window)
+    categoryList:SetPosition(20, 180)
+    categoryList:SetSize(140, 270)
 
-        button.Click = function()
-            selectedTab = tabStatus
-            updatingSearch = true
-            searchBox:SetText(searchQueries[selectedTab])
-            updatingSearch = false
-            window.Refresh()
-        end
-
-        tabButtons[tabStatus] = button
-    end
+    local categoryScroll = Turbine.UI.Lotro.ScrollBar()
+    categoryScroll:SetParent(window)
+    categoryScroll:SetPosition(162, 180)
+    categoryScroll:SetSize(10, 270)
+    categoryScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
+    categoryList:SetVerticalScrollBar(categoryScroll)
 
     local searchLabel = Turbine.UI.Label()
     searchLabel:SetParent(window)
-    searchLabel:SetPosition(20, 190)
+    searchLabel:SetPosition(185, 157)
     searchLabel:SetSize(55, 20)
     searchLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
     searchLabel:SetText("Search")
 
-    searchBox = Turbine.UI.Lotro.TextBox()
+    local searchBox = Turbine.UI.Lotro.TextBox()
     searchBox:SetParent(window)
-    searchBox:SetPosition(78, 187)
-    searchBox:SetSize(320, 22)
+    searchBox:SetPosition(243, 154)
+    searchBox:SetSize(267, 22)
     searchBox:SetBackColor(Turbine.UI.Color(0.05, 0.05, 0.05))
     searchBox:SetForeColor(Turbine.UI.Color.White)
     searchBox:SetFont(Turbine.UI.Lotro.Font.Verdana14)
@@ -124,39 +129,38 @@ function HighlightPlayers.MainWindow.New(
 
     local clearSearchButton = Turbine.UI.Lotro.Button()
     clearSearchButton:SetParent(window)
-    clearSearchButton:SetPosition(408, 187)
-    clearSearchButton:SetSize(92, 22)
+    clearSearchButton:SetPosition(520, 154)
+    clearSearchButton:SetSize(80, 22)
     clearSearchButton:SetText("Clear")
 
     local list = Turbine.UI.ListBox()
     list:SetParent(window)
-    list:SetPosition(20, 219)
-    list:SetSize(width - 57, 213)
+    list:SetPosition(185, 180)
+    list:SetSize(398, 270)
 
     local listScroll = Turbine.UI.Lotro.ScrollBar()
     listScroll:SetParent(window)
-    listScroll:SetPosition(width - 34, 219)
-    listScroll:SetSize(10, 213)
+    listScroll:SetPosition(590, 180)
+    listScroll:SetSize(10, 270)
     listScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
     list:SetVerticalScrollBar(listScroll)
 
     local emptyLabel = Turbine.UI.Label()
     emptyLabel:SetParent(window)
-    emptyLabel:SetPosition(20, 290)
-    emptyLabel:SetSize(width - 40, 30)
+    emptyLabel:SetPosition(185, 290)
+    emptyLabel:SetSize(398, 30)
     emptyLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
     emptyLabel:SetForeColor(Turbine.UI.Color(0.65, 0.65, 0.65))
     emptyLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter)
-    emptyLabel:SetText("No saved players in this tab.")
     emptyLabel:SetVisible(false)
 
     local hintLabel = Turbine.UI.Label()
     hintLabel:SetParent(window)
-    hintLabel:SetPosition(20, 438)
+    hintLabel:SetPosition(20, 462)
     hintLabel:SetSize(width - 40, 18)
     hintLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     hintLabel:SetForeColor(Turbine.UI.Color(0.70, 0.70, 0.70))
-    hintLabel:SetText("Click a player to open the card. Command help: /eh help")
+    hintLabel:SetText("Click a player to edit. Label settings: /eh labels")
 
     local function showMessage(text, isError)
         messageLabel:SetText(text or "")
@@ -174,23 +178,43 @@ function HighlightPlayers.MainWindow.New(
     end
 
     window.Refresh = function()
-        for _, status in ipairs(HighlightPlayers.Constants.StatusOrder) do
-            local count = relationships:GetCount(status)
-            tabButtons[status]:SetText(
-                HighlightPlayers.Constants.StatusLabels[status] ..
-                " (" .. tostring(count) .. ")"
+        if labels:GetById(selectedLabelId) == nil then
+            local fallback = labels:GetFirst()
+            selectedLabelId = fallback ~= nil and fallback.id or nil
+            updatingSearch = true
+            searchBox:SetText(searchQueries[selectedLabelId] or "")
+            updatingSearch = false
+        end
+
+        categoryList:ClearItems()
+        for _, label in ipairs(labels:GetAll()) do
+            local currentId = label.id
+            local button = Turbine.UI.Lotro.Button()
+            button:SetSize(categoryList:GetWidth(), 28)
+            button:SetText(
+                label.name .. " (" ..
+                tostring(relationships:GetCount(label.id)) .. ")"
             )
-            tabButtons[status]:SetEnabled(status ~= selectedTab)
+            button:SetEnabled(currentId ~= selectedLabelId)
+            button.Click = function()
+                selectedLabelId = currentId
+                labelSelector:SetLabelId(currentId, false)
+                updatingSearch = true
+                searchBox:SetText(searchQueries[currentId] or "")
+                updatingSearch = false
+                window.Refresh()
+            end
+            categoryList:AddItem(button)
         end
 
         list:ClearItems()
-        local search = searchQueries[selectedTab]
-        local records = relationships:GetList(selectedTab, search)
-        if HighlightPlayers.Util.Trim(search) == "" then
-            emptyLabel:SetText("No saved players in this tab.")
-        else
-            emptyLabel:SetText("No players match the search.")
-        end
+        local search = searchQueries[selectedLabelId] or ""
+        local records = relationships:GetList(selectedLabelId, search)
+        emptyLabel:SetText(
+            HighlightPlayers.Util.Trim(search) == "" and
+            "No saved players with this label." or
+            "No players match the search."
+        )
         emptyLabel:SetVisible(table.getn(records) == 0)
 
         for _, record in ipairs(records) do
@@ -201,17 +225,15 @@ function HighlightPlayers.MainWindow.New(
                 record.name ..
                 ((record.note ~= nil and record.note ~= "") and "  *" or "")
             )
-
             item.Click = function()
                 cardWindow.OpenExisting(recordKey)
             end
-
             list:AddItem(item)
         end
 
         targetButton:SetEnabled(targetTracker:GetCurrentName() ~= nil)
         clearSearchButton:SetEnabled(
-            HighlightPlayers.Util.Trim(searchQueries[selectedTab]) ~= ""
+            HighlightPlayers.Util.Trim(search) ~= ""
         )
     end
 
@@ -220,12 +242,12 @@ function HighlightPlayers.MainWindow.New(
             return
         end
 
-        searchQueries[selectedTab] = searchBox:GetText()
+        searchQueries[selectedLabelId] = searchBox:GetText()
         window.Refresh()
     end
 
     clearSearchButton.Click = function()
-        searchQueries[selectedTab] = ""
+        searchQueries[selectedLabelId] = ""
         updatingSearch = true
         searchBox:SetText("")
         updatingSearch = false
@@ -265,7 +287,6 @@ function HighlightPlayers.MainWindow.New(
 
     targetButton.Click = function()
         local targetName = targetTracker:GetCurrentName()
-
         if targetName == nil then
             showMessage("No target selected.", true)
             return
@@ -275,11 +296,15 @@ function HighlightPlayers.MainWindow.New(
         showMessage(nil, false)
     end
 
+    manageButton.Click = function()
+        labelsWindow.Open()
+    end
+
     addButton.Click = function()
         local succeeded, result, persisted = relationships:SavePlayer(
             nil,
             nameBox:GetText(),
-            statusSelector:GetStatus(),
+            labelSelector:GetLabelId(),
             nil
         )
 
@@ -288,7 +313,7 @@ function HighlightPlayers.MainWindow.New(
             return
         end
 
-        selectedTab = result.status
+        selectedLabelId = result.labelId
         window.Refresh()
 
         if persisted then
@@ -320,13 +345,21 @@ function HighlightPlayers.MainWindow.New(
         end
     end)
 
+    local labelListener = labels:AddListener(function()
+        if window:IsVisible() then
+            window.Refresh()
+        end
+    end)
+
     local targetListener = targetTracker:AddListener(function()
         targetButton:SetEnabled(targetTracker:GetCurrentName() ~= nil)
     end)
 
     window.Stop = function()
         relationships:RemoveListener(relationshipListener)
+        labels:RemoveListener(labelListener)
         targetTracker:RemoveListener(targetListener)
+        labelSelector:Stop()
         savePosition()
         window:SetVisible(false)
     end

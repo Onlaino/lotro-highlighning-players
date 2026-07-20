@@ -2,7 +2,7 @@ HighlightPlayers = HighlightPlayers or {}
 
 HighlightPlayers.PlayerCardWindow = {}
 
-function HighlightPlayers.PlayerCardWindow.New(storage, relationships)
+function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     local settings = storage:GetData().settings.cardWindow
     local window = Turbine.UI.Lotro.Window()
     local width = 430
@@ -39,18 +39,20 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships)
     nameBox:SetFont(Turbine.UI.Lotro.Font.Verdana14)
     nameBox:SetMultiline(false)
 
-    local statusLabel = Turbine.UI.Label()
-    statusLabel:SetParent(window)
-    statusLabel:SetPosition(20, 98)
-    statusLabel:SetSize(100, 20)
-    statusLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    statusLabel:SetText("Status")
+    local labelTitle = Turbine.UI.Label()
+    labelTitle:SetParent(window)
+    labelTitle:SetPosition(20, 98)
+    labelTitle:SetSize(100, 20)
+    labelTitle:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    labelTitle:SetText("Label")
 
-    local statusSelector = HighlightPlayers.StatusSelector.New(
+    local labelSelector = HighlightPlayers.StatusSelector.New(
         window,
         20,
         118,
-        nil
+        labels,
+        nil,
+        width - 40
     )
 
     local noteLabel = Turbine.UI.Label()
@@ -124,7 +126,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships)
         storage:Save()
     end
 
-    window.OpenNew = function(prefilledName, status)
+    window.OpenNew = function(prefilledName, labelId)
         local existing = relationships:GetByName(prefilledName or "")
         if existing ~= nil then
             window.OpenExisting(
@@ -133,14 +135,14 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships)
             return
         end
 
+        local initialLabel = labels:GetById(labelId) or labels:GetFirst()
         originalKey = nil
         window:SetText("Add player")
         nameBox:SetText(prefilledName or "")
         noteBox:SetText("")
-        statusSelector:SetStatus(
-            HighlightPlayers.Util.ParseStatus(status) or
-            HighlightPlayers.Constants.Status.Friend
-        )
+        if initialLabel ~= nil then
+            labelSelector:SetLabelId(initialLabel.id, false)
+        end
         deleteButton:SetVisible(false)
         showMessage(nil, false)
         window:SetVisible(true)
@@ -161,7 +163,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships)
         window:SetText("Player card")
         nameBox:SetText(record.name)
         noteBox:SetText(record.note or "")
-        statusSelector:SetStatus(record.status)
+        labelSelector:SetLabelId(record.labelId, false)
         deleteButton:SetVisible(true)
         showMessage(nil, false)
         window:SetVisible(true)
@@ -173,7 +175,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships)
         local succeeded, result, persisted = relationships:SavePlayer(
             originalKey,
             nameBox:GetText(),
-            statusSelector:GetStatus(),
+            labelSelector:GetLabelId(),
             noteBox:GetText()
         )
 
@@ -234,6 +236,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships)
     end
 
     window.Stop = function()
+        labelSelector:Stop()
         savePosition()
         window:SetVisible(false)
     end

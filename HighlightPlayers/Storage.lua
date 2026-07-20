@@ -3,9 +3,22 @@ HighlightPlayers = HighlightPlayers or {}
 HighlightPlayers.Storage = {}
 HighlightPlayers.Storage.__index = HighlightPlayers.Storage
 
+local function clamp(value, minimum, maximum, fallback)
+    local number = tonumber(value)
+    if number == nil then
+        return fallback
+    end
+
+    return math.max(minimum, math.min(maximum, math.floor(number)))
+end
+
 local function defaultData()
+    local indicator = HighlightPlayers.Constants.Indicator
+
     return {
         version = HighlightPlayers.Constants.DataVersion,
+        labels = HighlightPlayers.Constants.CopyDefaultLabels(),
+        nextLabelId = 1,
         players = {},
         settings = {
             mainWindow = {
@@ -16,9 +29,15 @@ local function defaultData()
                 left = 250,
                 top = 190
             },
+            labelsWindow = {
+                left = 300,
+                top = 180
+            },
             indicator = {
                 left = Turbine.UI.Display.GetWidth() - 340,
                 top = 65,
+                width = indicator.DefaultWidth,
+                height = indicator.DefaultHeight,
                 locked = true
             }
         }
@@ -35,6 +54,44 @@ local function ensurePosition(settings, name, fallback)
     settings[name].top = tonumber(settings[name].top) or fallback.top
 end
 
+local function normalizeLabels(loaded, defaults)
+    if type(loaded.labels) ~= "table" or table.getn(loaded.labels) == 0 then
+        loaded.labels = HighlightPlayers.Constants.CopyDefaultLabels()
+        return
+    end
+
+    local normalized = {}
+    local usedIds = {}
+
+    for _, label in ipairs(loaded.labels) do
+        if type(label) == "table" then
+            local id = HighlightPlayers.Util.Trim(label.id)
+            local name = HighlightPlayers.Util.Trim(label.name)
+
+            if id ~= "" and name ~= "" and usedIds[id] ~= true then
+                usedIds[id] = true
+                table.insert(normalized, {
+                    id = id,
+                    name = string.sub(
+                        name,
+                        1,
+                        HighlightPlayers.Constants.LabelNameMaxLength
+                    ),
+                    red = clamp(label.red, 0, 255, 180),
+                    green = clamp(label.green, 0, 255, 180),
+                    blue = clamp(label.blue, 0, 255, 180)
+                })
+            end
+        end
+    end
+
+    if table.getn(normalized) == 0 then
+        loaded.labels = defaults.labels
+    else
+        loaded.labels = normalized
+    end
+end
+
 local function normalizeLoadedData(loaded)
     local defaults = defaultData()
 
@@ -43,6 +100,9 @@ local function normalizeLoadedData(loaded)
     end
 
     loaded.version = tonumber(loaded.version) or 1
+    loaded.nextLabelId = math.floor(
+        math.max(1, tonumber(loaded.nextLabelId) or 1)
+    )
 
     if type(loaded.players) ~= "table" then
         loaded.players = {}
@@ -52,24 +112,33 @@ local function normalizeLoadedData(loaded)
         loaded.settings = {}
     end
 
+    normalizeLabels(loaded, defaults)
+    ensurePosition(loaded.settings, "mainWindow", defaults.settings.mainWindow)
+    ensurePosition(loaded.settings, "cardWindow", defaults.settings.cardWindow)
     ensurePosition(
         loaded.settings,
-        "mainWindow",
-        defaults.settings.mainWindow
+        "labelsWindow",
+        defaults.settings.labelsWindow
     )
-    ensurePosition(
-        loaded.settings,
-        "cardWindow",
-        defaults.settings.cardWindow
+    ensurePosition(loaded.settings, "indicator", defaults.settings.indicator)
+
+    local indicator = loaded.settings.indicator
+    local limits = HighlightPlayers.Constants.Indicator
+    indicator.width = clamp(
+        indicator.width,
+        limits.MinWidth,
+        limits.MaxWidth,
+        limits.DefaultWidth
     )
-    ensurePosition(
-        loaded.settings,
-        "indicator",
-        defaults.settings.indicator
+    indicator.height = clamp(
+        indicator.height,
+        limits.MinHeight,
+        limits.MaxHeight,
+        limits.DefaultHeight
     )
 
-    if type(loaded.settings.indicator.locked) ~= "boolean" then
-        loaded.settings.indicator.locked = true
+    if type(indicator.locked) ~= "boolean" then
+        indicator.locked = true
     end
 
     loaded.version = HighlightPlayers.Constants.DataVersion

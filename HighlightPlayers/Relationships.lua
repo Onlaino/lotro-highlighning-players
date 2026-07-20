@@ -3,33 +3,52 @@ HighlightPlayers = HighlightPlayers or {}
 HighlightPlayers.Relationships = {}
 HighlightPlayers.Relationships.__index = HighlightPlayers.Relationships
 
-function HighlightPlayers.Relationships.New(storage)
+function HighlightPlayers.Relationships.New(storage, labels)
     local instance = {
         storage = storage,
+        labels = labels,
         players = storage:GetData().players,
+        byLabel = {},
         listeners = {}
     }
 
     setmetatable(instance, HighlightPlayers.Relationships)
-    instance:NormalizeLoadedPlayers()
+    local migrated = instance:NormalizeLoadedPlayers()
+    instance:RebuildIndex()
+
+    if migrated then
+        storage:Save()
+    end
+
     return instance
 end
 
 function HighlightPlayers.Relationships:NormalizeLoadedPlayers()
     local normalizedPlayers = {}
+    local fallback = self.labels:GetFirst()
+    local migrated = false
 
     for key, record in pairs(self.players) do
         if type(record) == "table" then
             local valid, name = HighlightPlayers.Util.ValidateName(
                 record.name or key
             )
-            local status = HighlightPlayers.Util.ParseStatus(record.status)
+            local labelId = record.labelId or record.status
 
-            if valid and status ~= nil then
+            if self.labels:GetById(labelId) == nil and fallback ~= nil then
+                labelId = fallback.id
+                migrated = true
+            end
+
+            if record.status ~= nil or record.labelId ~= labelId then
+                migrated = true
+            end
+
+            if valid and labelId ~= nil then
                 local normalizedName = HighlightPlayers.Util.NormalizeName(name)
                 normalizedPlayers[normalizedName] = {
                     name = name,
-                    status = status,
+                    labelId = labelId,
                     note = tostring(record.note or "")
                 }
             end
@@ -38,6 +57,36 @@ function HighlightPlayers.Relationships:NormalizeLoadedPlayers()
 
     self.players = normalizedPlayers
     self.storage:GetData().players = normalizedPlayers
+    return migrated
+end
+
+function HighlightPlayers.Relationships:RebuildIndex()
+    local index = {}
+
+    for _, label in ipairs(self.labels:GetAll()) do
+        index[label.id] = {}
+    end
+
+    for key, record in pairs(self.players) do
+        if index[record.labelId] == nil then
+            index[record.labelId] = {}
+        end
+
+        table.insert(index[record.labelId], {
+            key = key,
+            name = record.name,
+            labelId = record.labelId,
+            note = record.note
+        })
+    end
+
+    for _, records in pairs(index) do
+        table.sort(records, function(left, right)
+            return string.lower(left.name) < string.lower(right.name)
+        end)
+    end
+
+    self.byLabel = index
 end
 
 function HighlightPlayers.Relationships:AddListener(listener)
@@ -68,48 +117,33 @@ function HighlightPlayers.Relationships:GetByKey(key)
     return self.players[HighlightPlayers.Util.NormalizeName(key)]
 end
 
-function HighlightPlayers.Relationships:GetList(status, searchValue)
-    local result = {}
+function HighlightPlayers.Relationships:GetList(labelId, searchValue)
+    local source = self.byLabel[labelId] or {}
     local search = HighlightPlayers.Util.NormalizeName(searchValue)
 
-    for key, record in pairs(self.players) do
-        local normalizedName = HighlightPlayers.Util.NormalizeName(record.name)
-        local matchesSearch = search == "" or
-            string.find(normalizedName, search, 1, true) ~= nil
-
-        if record.status == status and matchesSearch then
-            table.insert(result, {
-                key = key,
-                name = record.name,
-                status = record.status,
-                note = record.note
-            })
-        end
+    if search == "" then
+        return source
     end
 
-    table.sort(result, function(left, right)
-        return string.lower(left.name) < string.lower(right.name)
-    end)
+    local result = {}
+    for _, record in ipairs(source) do
+        local normalizedName = HighlightPlayers.Util.NormalizeName(record.name)
+        if string.find(normalizedName, search, 1, true) ~= nil then
+            table.insert(result, record)
+        end
+    end
 
     return result
 end
 
-function HighlightPlayers.Relationships:GetCount(status)
-    local count = 0
-
-    for _, record in pairs(self.players) do
-        if record.status == status then
-            count = count + 1
-        end
-    end
-
-    return count
+function HighlightPlayers.Relationships:GetCount(labelId)
+    return table.getn(self.byLabel[labelId] or {})
 end
 
 function HighlightPlayers.Relationships:SavePlayer(
     originalKey,
     nameValue,
-    statusValue,
+    labelId,
     noteValue
 )
     local valid, nameOrError = HighlightPlayers.Util.ValidateName(nameValue)
@@ -117,9 +151,8 @@ function HighlightPlayers.Relationships:SavePlayer(
         return false, nameOrError, false
     end
 
-    local status = HighlightPlayers.Util.ParseStatus(statusValue)
-    if status == nil then
-        return false, "Choose Friend, Neutral or Enemy.", false
+    if self.labels:GetById(labelId) == nil then
+        return false, "Choose an existing label.", false
     end
 
     local name = nameOrError
@@ -152,18 +185,19 @@ function HighlightPlayers.Relationships:SavePlayer(
 
     local record = {
         name = name,
-        status = status,
+        labelId = labelId,
         note = tostring(note)
     }
 
     self.players[key] = record
+    self:RebuildIndex()
     local persisted = self.storage:Save()
     self:Notify("saved", record)
 
     return true, {
         key = key,
         name = record.name,
-        status = record.status,
+        labelId = record.labelId,
         note = record.note
     }, persisted
 end
@@ -177,6 +211,7 @@ function HighlightPlayers.Relationships:Delete(keyValue)
     end
 
     self.players[key] = nil
+    self:RebuildIndex()
     local persisted = self.storage:Save()
     self:Notify("deleted", record)
 

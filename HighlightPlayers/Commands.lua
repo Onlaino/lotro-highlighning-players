@@ -5,17 +5,21 @@ HighlightPlayers.Commands.__index = HighlightPlayers.Commands
 
 function HighlightPlayers.Commands.New(
     relationships,
+    labels,
     targetTracker,
     indicator,
     mainWindow,
-    cardWindow
+    cardWindow,
+    labelsWindow
 )
     local instance = {
         relationships = relationships,
+        labels = labels,
         targetTracker = targetTracker,
         indicator = indicator,
         mainWindow = mainWindow,
         cardWindow = cardWindow,
+        labelsWindow = labelsWindow,
         command = nil
     }
 
@@ -28,8 +32,9 @@ function HighlightPlayers.Commands:GetHelp()
         "/eh - toggle the main window",
         "/eh show | hide",
         "/eh move | lock",
+        "/eh labels - manage labels and indicator size",
         "/eh add <nickname>",
-        "/eh add <nickname> <friend|neutral|enemy>",
+        "/eh add <nickname> <label name>",
         "/eh info <nickname> - print the saved note",
         "/eh probe - print current target diagnostics",
         "/eh help"
@@ -65,6 +70,11 @@ function HighlightPlayers.Commands:Execute(arguments)
 
     if verb == "lock" then
         self.indicator.SetMoveMode(false)
+        return
+    end
+
+    if verb == "labels" then
+        self.labelsWindow.Open()
         return
     end
 
@@ -111,27 +121,24 @@ function HighlightPlayers.Commands:Execute(arguments)
     end
 
     if verb == "add" then
-        local name, statusValue, extra = string.match(
-            rest,
-            "^(%S+)%s*(%S*)%s*(.-)%s*$"
-        )
+        local name, labelName = string.match(rest, "^(%S+)%s*(.-)%s*$")
 
-        if name == nil or name == "" or (extra ~= nil and extra ~= "") then
+        if name == nil or name == "" then
             HighlightPlayers.Util.WriteError(
-                "Usage: /eh add <nickname> [friend|neutral|enemy]"
+                "Usage: /eh add <nickname> [label name]"
             )
             return
         end
 
-        if statusValue == nil or statusValue == "" then
+        if labelName == nil or labelName == "" then
             self.cardWindow.OpenNew(name, nil)
             return
         end
 
-        local status = HighlightPlayers.Util.ParseStatus(statusValue)
-        if status == nil then
+        local label = self.labels:FindByName(labelName)
+        if label == nil then
             HighlightPlayers.Util.WriteError(
-                "Status must be friend, neutral or enemy."
+                "Unknown label: " .. labelName .. ". Use /eh labels."
             )
             return
         end
@@ -139,7 +146,7 @@ function HighlightPlayers.Commands:Execute(arguments)
         local succeeded, result, persisted = self.relationships:SavePlayer(
             nil,
             name,
-            status,
+            label.id,
             nil
         )
 
@@ -150,8 +157,7 @@ function HighlightPlayers.Commands:Execute(arguments)
 
         if persisted then
             HighlightPlayers.Util.WriteInfo(
-                "Saved " .. result.name .. " as " ..
-                HighlightPlayers.Constants.StatusLabels[result.status] .. "."
+                "Saved " .. result.name .. " as " .. label.name .. "."
             )
         end
         return

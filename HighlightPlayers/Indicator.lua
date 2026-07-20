@@ -2,11 +2,16 @@ HighlightPlayers = HighlightPlayers or {}
 
 HighlightPlayers.Indicator = {}
 
-function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
+function HighlightPlayers.Indicator.New(
+    storage,
+    relationships,
+    labels,
+    targetTracker
+)
     local settings = storage:GetData().settings.indicator
     local window = Turbine.UI.Window()
-    local width = 112
-    local height = 26
+    local width = settings.width
+    local height = settings.height
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -45,16 +50,11 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
 
     local function update()
         local record = getCurrentRecord()
+        local label = record ~= nil and labels:GetById(record.labelId) or nil
 
-        if record ~= nil then
-            badge:SetBackColor(
-                HighlightPlayers.Constants.StatusColors[record.status]
-            )
-            if moveMode then
-                badge:SetText("MOVE / " .. string.upper(record.status))
-            else
-                badge:SetText(string.upper(record.status))
-            end
+        if label ~= nil then
+            badge:SetBackColor(labels:GetColor(label))
+            badge:SetText(moveMode and "MOVE" or label.name)
             window:SetVisible(true)
             return
         end
@@ -126,6 +126,38 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
         end
     end
 
+    window.ApplySize = function(newWidth, newHeight)
+        local limits = HighlightPlayers.Constants.Indicator
+        width = math.max(
+            limits.MinWidth,
+            math.min(limits.MaxWidth, math.floor(tonumber(newWidth) or width))
+        )
+        height = math.max(
+            limits.MinHeight,
+            math.min(
+                limits.MaxHeight,
+                math.floor(tonumber(newHeight) or height)
+            )
+        )
+
+        settings.width = width
+        settings.height = height
+        badge:SetSize(width - 4, height - 4)
+        window:SetSize(width, height)
+
+        local newLeft, newTop = HighlightPlayers.Util.ClampPosition(
+            window:GetLeft(),
+            window:GetTop(),
+            width,
+            height
+        )
+        window:SetPosition(newLeft, newTop)
+        settings.left = newLeft
+        settings.top = newTop
+        storage:Save()
+        update()
+    end
+
     window.IsMoveMode = function()
         return moveMode
     end
@@ -140,11 +172,18 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
         update()
     end)
 
+    local labelsListener = labels:AddListener(function()
+        update()
+    end)
+
     window.Stop = function()
         targetTracker:RemoveListener(targetListener)
         relationships:RemoveListener(relationshipListener)
+        labels:RemoveListener(labelsListener)
         settings.left = window:GetLeft()
         settings.top = window:GetTop()
+        settings.width = width
+        settings.height = height
         settings.locked = not moveMode
         window:SetVisible(false)
     end

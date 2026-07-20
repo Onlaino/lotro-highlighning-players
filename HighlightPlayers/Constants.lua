@@ -2,21 +2,53 @@ HighlightPlayers = HighlightPlayers or {}
 
 HighlightPlayers.Constants = {
     DataKey = "HighlightPlayers",
-    DataVersion = 1,
-    Status = {
-        Friend = "friend",
-        Neutral = "neutral",
-        Enemy = "enemy"
+    DataVersion = 2,
+    LabelNameMaxLength = 32,
+    Indicator = {
+        DefaultWidth = 112,
+        DefaultHeight = 26,
+        MinWidth = 60,
+        MaxWidth = 300,
+        MinHeight = 20,
+        MaxHeight = 80
     },
-    StatusOrder = { "friend", "neutral", "enemy" },
-    StatusLabels = {
-        friend = "Friend",
-        neutral = "Neutral",
-        enemy = "Enemy"
-    },
-    StatusColors = {
-        friend = Turbine.UI.Color(0.20, 0.90, 0.25),
-        neutral = Turbine.UI.Color(1.00, 0.55, 0.10),
-        enemy = Turbine.UI.Color(0.95, 0.15, 0.15)
+    DefaultLabels = {
+        {
+            id = "friend",
+            name = "Friend",
+            red = 51,
+            green = 230,
+            blue = 64
+        },
+        {
+            id = "neutral",
+            name = "Neutral",
+            red = 255,
+            green = 140,
+            blue = 26
+        },
+        {
+            id = "enemy",
+            name = "Enemy",
+            red = 242,
+            green = 38,
+            blue = 38
+        }
     }
 }
+
+function HighlightPlayers.Constants.CopyDefaultLabels()
+    local result = {}
+
+    for index, label in ipairs(HighlightPlayers.Constants.DefaultLabels) do
+        result[index] = {
+            id = label.id,
+            name = label.name,
+            red = label.red,
+            green = label.green,
+            blue = label.blue
+        }
+    end
+
+    return result
+end
