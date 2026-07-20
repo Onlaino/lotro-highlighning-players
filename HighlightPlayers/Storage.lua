@@ -33,6 +33,10 @@ local function defaultData()
                 left = 300,
                 top = 180
             },
+            launcher = {
+                left = 20,
+                top = math.floor(Turbine.UI.Display.GetHeight() / 2)
+            },
             indicator = {
                 left = Turbine.UI.Display.GetWidth() - 340,
                 top = 65,
@@ -120,6 +124,7 @@ local function normalizeLoadedData(loaded)
         "labelsWindow",
         defaults.settings.labelsWindow
     )
+    ensurePosition(loaded.settings, "launcher", defaults.settings.launcher)
     ensurePosition(loaded.settings, "indicator", defaults.settings.indicator)
 
     local indicator = loaded.settings.indicator

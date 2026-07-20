@@ -13,7 +13,7 @@ function HighlightPlayers.MainWindow.New(
     local settings = storage:GetData().settings.mainWindow
     local window = Turbine.UI.Lotro.Window()
     local width = 620
-    local height = 500
+    local height = 580
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -70,9 +70,9 @@ function HighlightPlayers.MainWindow.New(
     local labelTitle = Turbine.UI.Label()
     labelTitle:SetParent(window)
     labelTitle:SetPosition(20, 93)
-    labelTitle:SetSize(100, 20)
+    labelTitle:SetSize(340, 20)
     labelTitle:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    labelTitle:SetText("Label")
+    labelTitle:SetText("Choose a label for this player")
 
     local labelSelector = HighlightPlayers.StatusSelector.New(
         window,
@@ -80,13 +80,14 @@ function HighlightPlayers.MainWindow.New(
         113,
         labels,
         nil,
-        340
+        340,
+        96
     )
 
     local messageLabel = Turbine.UI.Label()
     messageLabel:SetParent(window)
     messageLabel:SetPosition(375, 101)
-    messageLabel:SetSize(225, 40)
+    messageLabel:SetSize(225, 96)
     messageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     messageLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
     messageLabel:SetMultiline(true)
@@ -94,33 +95,33 @@ function HighlightPlayers.MainWindow.New(
 
     local categoriesTitle = Turbine.UI.Label()
     categoriesTitle:SetParent(window)
-    categoriesTitle:SetPosition(20, 157)
+    categoriesTitle:SetPosition(20, 230)
     categoriesTitle:SetSize(145, 20)
     categoriesTitle:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
     categoriesTitle:SetText("Labels")
 
     local categoryList = Turbine.UI.ListBox()
     categoryList:SetParent(window)
-    categoryList:SetPosition(20, 180)
-    categoryList:SetSize(140, 270)
+    categoryList:SetPosition(20, 253)
+    categoryList:SetSize(140, 280)
 
     local categoryScroll = Turbine.UI.Lotro.ScrollBar()
     categoryScroll:SetParent(window)
-    categoryScroll:SetPosition(162, 180)
-    categoryScroll:SetSize(10, 270)
+    categoryScroll:SetPosition(162, 253)
+    categoryScroll:SetSize(10, 280)
     categoryScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
     categoryList:SetVerticalScrollBar(categoryScroll)
 
     local searchLabel = Turbine.UI.Label()
     searchLabel:SetParent(window)
-    searchLabel:SetPosition(185, 157)
+    searchLabel:SetPosition(185, 230)
     searchLabel:SetSize(55, 20)
     searchLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
     searchLabel:SetText("Search")
 
     local searchBox = Turbine.UI.Lotro.TextBox()
     searchBox:SetParent(window)
-    searchBox:SetPosition(243, 154)
+    searchBox:SetPosition(243, 227)
     searchBox:SetSize(267, 22)
     searchBox:SetBackColor(Turbine.UI.Color(0.05, 0.05, 0.05))
     searchBox:SetForeColor(Turbine.UI.Color.White)
@@ -129,25 +130,25 @@ function HighlightPlayers.MainWindow.New(
 
     local clearSearchButton = Turbine.UI.Lotro.Button()
     clearSearchButton:SetParent(window)
-    clearSearchButton:SetPosition(520, 154)
+    clearSearchButton:SetPosition(520, 227)
     clearSearchButton:SetSize(80, 22)
     clearSearchButton:SetText("Clear")
 
     local list = Turbine.UI.ListBox()
     list:SetParent(window)
-    list:SetPosition(185, 180)
-    list:SetSize(398, 270)
+    list:SetPosition(185, 253)
+    list:SetSize(398, 280)
 
     local listScroll = Turbine.UI.Lotro.ScrollBar()
     listScroll:SetParent(window)
-    listScroll:SetPosition(590, 180)
-    listScroll:SetSize(10, 270)
+    listScroll:SetPosition(590, 253)
+    listScroll:SetSize(10, 280)
     listScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
     list:SetVerticalScrollBar(listScroll)
 
     local emptyLabel = Turbine.UI.Label()
     emptyLabel:SetParent(window)
-    emptyLabel:SetPosition(185, 290)
+    emptyLabel:SetPosition(185, 370)
     emptyLabel:SetSize(398, 30)
     emptyLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
     emptyLabel:SetForeColor(Turbine.UI.Color(0.65, 0.65, 0.65))
@@ -156,7 +157,7 @@ function HighlightPlayers.MainWindow.New(
 
     local hintLabel = Turbine.UI.Label()
     hintLabel:SetParent(window)
-    hintLabel:SetPosition(20, 462)
+    hintLabel:SetPosition(20, 545)
     hintLabel:SetSize(width - 40, 18)
     hintLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     hintLabel:SetForeColor(Turbine.UI.Color(0.70, 0.70, 0.70))
@@ -267,7 +268,7 @@ function HighlightPlayers.MainWindow.New(
         window.Refresh()
         window:SetVisible(true)
         window:Activate()
-        nameBox:Focus()
+        window:Focus()
     end
 
     window.Hide = function()

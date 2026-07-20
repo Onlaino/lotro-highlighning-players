@@ -14,6 +14,7 @@ function HighlightPlayers.App.New(pluginInstance)
         labelsWindow = nil,
         cardWindow = nil,
         mainWindow = nil,
+        launcher = nil,
         commands = nil,
         started = false
     }
@@ -65,6 +66,10 @@ function HighlightPlayers.App:Start()
         self.cardWindow,
         self.labelsWindow
     )
+    self.launcher = HighlightPlayers.Launcher.New(
+        self.storage,
+        self.mainWindow
+    )
     self.commands = HighlightPlayers.Commands.New(
         self.relationships,
         self.labels,
@@ -79,7 +84,7 @@ function HighlightPlayers.App:Start()
     self.started = true
     HighlightPlayers.Util.WriteInfo(
         "Enemy Highlight v" .. self.plugin:GetVersion() ..
-        " loaded. Use /eh to open."
+        " loaded. Click the launcher icon or use /eh to open."
     )
 end
 
@@ -89,6 +94,7 @@ function HighlightPlayers.App:Stop()
     end
 
     self.commands:Stop()
+    self.launcher.Stop()
     self.mainWindow.Stop()
     self.cardWindow.Stop()
     self.labelsWindow.Stop()

@@ -6,7 +6,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     local settings = storage:GetData().settings.cardWindow
     local window = Turbine.UI.Lotro.Window()
     local width = 430
-    local height = 370
+    local height = 470
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -42,9 +42,9 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     local labelTitle = Turbine.UI.Label()
     labelTitle:SetParent(window)
     labelTitle:SetPosition(20, 98)
-    labelTitle:SetSize(100, 20)
+    labelTitle:SetSize(width - 40, 20)
     labelTitle:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    labelTitle:SetText("Label")
+    labelTitle:SetText("Choose one label")
 
     local labelSelector = HighlightPlayers.StatusSelector.New(
         window,
@@ -52,20 +52,21 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         118,
         labels,
         nil,
-        width - 40
+        width - 40,
+        100
     )
 
     local noteLabel = Turbine.UI.Label()
     noteLabel:SetParent(window)
-    noteLabel:SetPosition(20, 152)
+    noteLabel:SetPosition(20, 230)
     noteLabel:SetSize(100, 20)
     noteLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
     noteLabel:SetText("Note")
 
     local noteBox = Turbine.UI.Lotro.TextBox()
     noteBox:SetParent(window)
-    noteBox:SetPosition(20, 172)
-    noteBox:SetSize(width - 57, 120)
+    noteBox:SetPosition(20, 250)
+    noteBox:SetSize(width - 57, 130)
     noteBox:SetBackColor(Turbine.UI.Color(0.05, 0.05, 0.05))
     noteBox:SetForeColor(Turbine.UI.Color.White)
     noteBox:SetFont(Turbine.UI.Lotro.Font.Verdana14)
@@ -73,34 +74,34 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
 
     local noteScroll = Turbine.UI.Lotro.ScrollBar()
     noteScroll:SetParent(window)
-    noteScroll:SetPosition(width - 34, 172)
-    noteScroll:SetSize(10, 120)
+    noteScroll:SetPosition(width - 34, 250)
+    noteScroll:SetSize(10, 130)
     noteScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
     noteBox:SetVerticalScrollBar(noteScroll)
 
     local messageLabel = Turbine.UI.Label()
     messageLabel:SetParent(window)
-    messageLabel:SetPosition(20, 297)
-    messageLabel:SetSize(width - 40, 20)
+    messageLabel:SetPosition(20, 386)
+    messageLabel:SetSize(width - 40, 30)
     messageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     messageLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
     messageLabel:SetVisible(false)
 
     local saveButton = Turbine.UI.Lotro.Button()
     saveButton:SetParent(window)
-    saveButton:SetPosition(20, 326)
+    saveButton:SetPosition(20, 426)
     saveButton:SetSize(110, 22)
     saveButton:SetText("Save")
 
     local deleteButton = Turbine.UI.Lotro.Button()
     deleteButton:SetParent(window)
-    deleteButton:SetPosition(160, 326)
+    deleteButton:SetPosition(160, 426)
     deleteButton:SetSize(110, 22)
     deleteButton:SetText("Delete")
 
     local cancelButton = Turbine.UI.Lotro.Button()
     cancelButton:SetParent(window)
-    cancelButton:SetPosition(300, 326)
+    cancelButton:SetPosition(300, 426)
     cancelButton:SetSize(110, 22)
     cancelButton:SetText("Cancel")
 

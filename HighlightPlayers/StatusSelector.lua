@@ -8,68 +8,85 @@ function HighlightPlayers.StatusSelector.New(
     top,
     labels,
     onChanged,
-    width
+    width,
+    height
 )
     local selector = {
         labels = labels,
         labelId = nil,
+        rows = {},
         listener = nil
     }
 
     local totalWidth = width or 320
-    local arrowWidth = 30
+    local totalHeight = height or 96
 
-    local previousButton = Turbine.UI.Lotro.Button()
-    previousButton:SetParent(parent)
-    previousButton:SetPosition(left, top)
-    previousButton:SetSize(arrowWidth, 22)
-    previousButton:SetText("<")
+    local list = Turbine.UI.ListBox()
+    list:SetParent(parent)
+    list:SetPosition(left, top)
+    list:SetSize(totalWidth - 17, totalHeight)
 
-    local display = Turbine.UI.Label()
-    display:SetParent(parent)
-    display:SetPosition(left + arrowWidth + 4, top)
-    display:SetSize(totalWidth - arrowWidth * 2 - 8, 22)
-    display:SetFont(Turbine.UI.Lotro.Font.Verdana12)
-    display:SetForeColor(Turbine.UI.Color.Black)
-    display:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter)
+    local scroll = Turbine.UI.Lotro.ScrollBar()
+    scroll:SetParent(parent)
+    scroll:SetPosition(left + totalWidth - 10, top)
+    scroll:SetSize(10, totalHeight)
+    scroll:SetOrientation(Turbine.UI.Orientation.Vertical)
+    list:SetVerticalScrollBar(scroll)
 
-    local nextButton = Turbine.UI.Lotro.Button()
-    nextButton:SetParent(parent)
-    nextButton:SetPosition(left + totalWidth - arrowWidth, top)
-    nextButton:SetSize(arrowWidth, 22)
-    nextButton:SetText(">")
-
-    local function findCurrentIndex(all)
-        for index, label in ipairs(all) do
-            if label.id == selector.labelId then
-                return index
-            end
+    function selector:UpdateSelection()
+        for id, row in pairs(self.rows) do
+            local selected = id == self.labelId
+            row.button:SetEnabled(not selected)
+            row.button:SetText(
+                selected and row.name .. "  [selected]" or row.name
+            )
         end
-
-        return nil
     end
 
-    function selector:Refresh()
+    function selector:Rebuild()
+        list:ClearItems()
+        self.rows = {}
+
         local all = self.labels:GetAll()
-        local current = self.labels:GetById(self.labelId)
-
-        if current == nil then
-            current = all[1]
-            self.labelId = current ~= nil and current.id or nil
+        if self.labels:GetById(self.labelId) == nil then
+            self.labelId = all[1] ~= nil and all[1].id or nil
         end
 
-        if current == nil then
-            display:SetText("No labels")
-            display:SetBackColor(Turbine.UI.Color(0.50, 0.50, 0.50))
-            previousButton:SetEnabled(false)
-            nextButton:SetEnabled(false)
-            return
+        for _, label in ipairs(all) do
+            local currentId = label.id
+            local item = Turbine.UI.Control()
+            item:SetSize(list:GetWidth(), 30)
+
+            local button = Turbine.UI.Lotro.Button()
+            button:SetParent(item)
+            button:SetPosition(1, 3)
+            button:SetSize(item:GetWidth() - 2, 24)
+            button.Click = function()
+                selector:SetLabelId(currentId, true)
+            end
+
+            local swatchBorder = Turbine.UI.Label()
+            swatchBorder:SetParent(item)
+            swatchBorder:SetPosition(1, 3)
+            swatchBorder:SetSize(26, 24)
+            swatchBorder:SetBackColor(Turbine.UI.Color.Black)
+            swatchBorder:SetMouseVisible(false)
+
+            local swatch = Turbine.UI.Label()
+            swatch:SetParent(item)
+            swatch:SetPosition(3, 5)
+            swatch:SetSize(22, 20)
+            swatch:SetBackColor(self.labels:GetColor(label))
+            swatch:SetMouseVisible(false)
+
+            self.rows[currentId] = {
+                button = button,
+                name = label.name
+            }
+            list:AddItem(item)
         end
 
-        display:SetText(current.name)
-        display:SetBackColor(self.labels:GetColor(current))
-        previousButton:SetEnabled(table.getn(all) > 1)
-        nextButton:SetEnabled(table.getn(all) > 1)
+        self:UpdateSelection()
     end
 
     function selector:SetLabelId(labelId, notify)
@@ -78,7 +95,7 @@ function HighlightPlayers.StatusSelector.New(
         end
 
         self.labelId = labelId
-        self:Refresh()
+        self:UpdateSelection()
 
         if notify == true and onChanged ~= nil then
             onChanged(labelId)
@@ -91,25 +108,6 @@ function HighlightPlayers.StatusSelector.New(
         return self.labelId
     end
 
-    function selector:Move(direction)
-        local all = self.labels:GetAll()
-        local count = table.getn(all)
-        if count == 0 then
-            return
-        end
-
-        local index = findCurrentIndex(all) or 1
-        index = index + direction
-
-        if index < 1 then
-            index = count
-        elseif index > count then
-            index = 1
-        end
-
-        self:SetLabelId(all[index].id, true)
-    end
-
     function selector:Stop()
         if self.listener ~= nil then
             self.labels:RemoveListener(self.listener)
@@ -117,18 +115,10 @@ function HighlightPlayers.StatusSelector.New(
         end
     end
 
-    previousButton.Click = function()
-        selector:Move(-1)
-    end
-
-    nextButton.Click = function()
-        selector:Move(1)
-    end
-
     selector.listener = labels:AddListener(function()
-        selector:Refresh()
+        selector:Rebuild()
     end)
 
-    selector:Refresh()
+    selector:Rebuild()
     return selector
 end

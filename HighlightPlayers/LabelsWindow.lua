@@ -51,7 +51,7 @@ function HighlightPlayers.LabelsWindow.New(
 
     local selectedId = nil
 
-    createLabel(window, 20, 43, 170, "Labels")
+    createLabel(window, 20, 43, 185, "Labels - select to edit")
     local list = Turbine.UI.ListBox()
     list:SetParent(window)
     list:SetPosition(20, 65)
@@ -67,10 +67,16 @@ function HighlightPlayers.LabelsWindow.New(
     createLabel(window, 235, 43, 120, "Label name")
     local nameBox = createTextBox(window, 235, 65, 300)
 
-    createLabel(window, 235, 98, 120, "Color RGB")
-    local redBox = createTextBox(window, 235, 120, 70)
-    local greenBox = createTextBox(window, 315, 120, 70)
-    local blueBox = createTextBox(window, 395, 120, 70)
+    createLabel(window, 235, 98, 220, "Color components (0-255)")
+    local redCaption = createLabel(window, 235, 123, 15, "R")
+    redCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
+    local redBox = createTextBox(window, 252, 120, 55)
+    local greenCaption = createLabel(window, 315, 123, 15, "G")
+    greenCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
+    local greenBox = createTextBox(window, 332, 120, 55)
+    local blueCaption = createLabel(window, 395, 123, 15, "B")
+    blueCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
+    local blueBox = createTextBox(window, 412, 120, 55)
 
     local preview = Turbine.UI.Label()
     preview:SetParent(window)
@@ -99,31 +105,38 @@ function HighlightPlayers.LabelsWindow.New(
     deleteButton:SetSize(90, 22)
     deleteButton:SetText("Delete")
 
+    local modeLabel = Turbine.UI.Label()
+    modeLabel:SetParent(window)
+    modeLabel:SetPosition(235, 188)
+    modeLabel:SetSize(300, 20)
+    modeLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+
     local usageLabel = Turbine.UI.Label()
     usageLabel:SetParent(window)
-    usageLabel:SetPosition(235, 188)
-    usageLabel:SetSize(300, 20)
+    usageLabel:SetPosition(235, 210)
+    usageLabel:SetSize(300, 35)
     usageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
+    usageLabel:SetMultiline(true)
 
-    createLabel(window, 235, 225, 250, "Indicator size (pixels)")
-    local widthCaption = createLabel(window, 235, 250, 20, "W")
+    createLabel(window, 235, 250, 250, "Indicator size (pixels)")
+    local widthCaption = createLabel(window, 235, 275, 45, "Width")
     widthCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
-    local widthBox = createTextBox(window, 258, 247, 70)
-    local heightCaption = createLabel(window, 340, 250, 20, "H")
+    local widthBox = createTextBox(window, 280, 272, 55)
+    local heightCaption = createLabel(window, 345, 275, 45, "Height")
     heightCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
-    local heightBox = createTextBox(window, 363, 247, 67)
+    local heightBox = createTextBox(window, 392, 272, 55)
     widthBox:SetText(tostring(indicatorSettings.width))
     heightBox:SetText(tostring(indicatorSettings.height))
 
     local applySizeButton = Turbine.UI.Lotro.Button()
     applySizeButton:SetParent(window)
-    applySizeButton:SetPosition(445, 247)
-    applySizeButton:SetSize(90, 22)
+    applySizeButton:SetPosition(457, 272)
+    applySizeButton:SetSize(78, 22)
     applySizeButton:SetText("Apply size")
 
     local sizeHint = Turbine.UI.Label()
     sizeHint:SetParent(window)
-    sizeHint:SetPosition(235, 275)
+    sizeHint:SetPosition(235, 302)
     sizeHint:SetSize(300, 35)
     sizeHint:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     sizeHint:SetMultiline(true)
@@ -167,28 +180,52 @@ function HighlightPlayers.LabelsWindow.New(
         preview:SetBackColor(Turbine.UI.Color(red / 255, green / 255, blue / 255))
     end
 
+    local function updateUsageState(label)
+        if label == nil then
+            usageLabel:SetText("Enter a name and RGB values, then click Save.")
+            deleteButton:SetEnabled(false)
+            return
+        end
+
+        local count = relationships:GetCount(label.id)
+        local isLast = table.getn(labels:GetAll()) <= 1
+
+        if count > 0 then
+            usageLabel:SetText(
+                "Assigned players: " .. tostring(count) ..
+                ". Reassign them before deleting this label."
+            )
+        elseif isLast then
+            usageLabel:SetText(
+                "Assigned players: 0. At least one label must remain."
+            )
+        else
+            usageLabel:SetText(
+                "Assigned players: 0. This label can be deleted."
+            )
+        end
+
+        deleteButton:SetEnabled(count == 0 and not isLast)
+    end
+
     local function loadLabel(label)
         selectedId = label ~= nil and label.id or nil
 
         if label == nil then
+            modeLabel:SetText("Creating a new label")
             nameBox:SetText("")
             redBox:SetText("180")
             greenBox:SetText("180")
             blueBox:SetText("180")
-            usageLabel:SetText("Creating a new label")
-            deleteButton:SetEnabled(false)
         else
+            modeLabel:SetText("Editing: " .. label.name)
             nameBox:SetText(label.name)
             redBox:SetText(tostring(label.red))
             greenBox:SetText(tostring(label.green))
             blueBox:SetText(tostring(label.blue))
-            usageLabel:SetText(
-                "Assigned players: " ..
-                tostring(relationships:GetCount(label.id))
-            )
-            deleteButton:SetEnabled(true)
         end
 
+        updateUsageState(label)
         updatePreview()
     end
 
@@ -197,8 +234,13 @@ function HighlightPlayers.LabelsWindow.New(
 
         for _, label in ipairs(labels:GetAll()) do
             local currentId = label.id
+            local item = Turbine.UI.Control()
+            item:SetSize(list:GetWidth(), 30)
+
             local button = Turbine.UI.Lotro.Button()
-            button:SetSize(list:GetWidth(), 28)
+            button:SetParent(item)
+            button:SetPosition(1, 3)
+            button:SetSize(item:GetWidth() - 2, 24)
             button:SetText(
                 label.name .. " (" ..
                 tostring(relationships:GetCount(label.id)) .. ")"
@@ -208,7 +250,22 @@ function HighlightPlayers.LabelsWindow.New(
                 loadLabel(labels:GetById(currentId))
                 window.Refresh()
             end
-            list:AddItem(button)
+
+            local swatchBorder = Turbine.UI.Label()
+            swatchBorder:SetParent(item)
+            swatchBorder:SetPosition(1, 3)
+            swatchBorder:SetSize(26, 24)
+            swatchBorder:SetBackColor(Turbine.UI.Color.Black)
+            swatchBorder:SetMouseVisible(false)
+
+            local swatch = Turbine.UI.Label()
+            swatch:SetParent(item)
+            swatch:SetPosition(3, 5)
+            swatch:SetSize(22, 20)
+            swatch:SetBackColor(labels:GetColor(label))
+            swatch:SetMouseVisible(false)
+
+            list:AddItem(item)
         end
 
         if selectedId ~= nil and labels:GetById(selectedId) == nil then
@@ -302,9 +359,7 @@ function HighlightPlayers.LabelsWindow.New(
         widthBox:SetText(tostring(indicatorSettings.width))
         heightBox:SetText(tostring(indicatorSettings.height))
 
-        if selectedId == nil then
-            loadLabel(labels:GetFirst())
-        end
+        loadLabel(labels:GetById(selectedId) or labels:GetFirst())
 
         window.Refresh()
         showMessage(nil, false)
@@ -349,10 +404,7 @@ function HighlightPlayers.LabelsWindow.New(
             window.Refresh()
             local selected = labels:GetById(selectedId)
             if selected ~= nil then
-                usageLabel:SetText(
-                    "Assigned players: " ..
-                    tostring(relationships:GetCount(selected.id))
-                )
+                updateUsageState(selected)
             end
         end
     end)
