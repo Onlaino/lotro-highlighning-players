@@ -42,7 +42,7 @@ function HighlightPlayers.Indicator.New(
 
     local badge = Turbine.UI.Label()
     badge:SetParent(window)
-    badge:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    badge:SetFont(Turbine.UI.Lotro.Font.TrajanPro13)
     badge:SetForeColor(Turbine.UI.Color(0.96, 0.90, 0.72))
     badge:SetOutlineColor(Turbine.UI.Color.Black)
     badge:SetFontStyle(Turbine.UI.FontStyle.Outline)
@@ -55,18 +55,80 @@ function HighlightPlayers.Indicator.New(
     local moveY = 0
     local moveMode = settings.locked ~= true
 
-    local function getCharacterCount(value)
-        local count = 0
-        local text = tostring(value or "")
+    local function getCharacterMetrics(text, index)
+        local firstByte = string.byte(text, index)
+        if firstByte >= 128 then
+            if firstByte < 224 then
+                return 8, 2
+            elseif firstByte < 240 then
+                return 8, 3
+            end
 
-        for index = 1, string.len(text) do
-            local byte = string.byte(text, index)
-            if byte < 128 or byte >= 192 then
-                count = count + 1
+            return 8, 4
+        end
+
+        local character = string.sub(text, index, index)
+        if character == " " then
+            return 4, 1
+        end
+
+        if string.find("ijlI1.,:;!'|`", character, 1, true) ~= nil then
+            return 4, 1
+        end
+
+        if string.find("MWQO@#%&wm", character, 1, true) ~= nil then
+            return 10, 1
+        end
+
+        if firstByte >= 65 and firstByte <= 90 then
+            return 8, 1
+        end
+
+        return 7, 1
+    end
+
+    local function measureText(value)
+        local width = 0
+        local text = tostring(value or "")
+        local index = 1
+
+        while index <= string.len(text) do
+            local characterWidth, byteLength = getCharacterMetrics(text, index)
+            width = width + characterWidth
+            index = index + byteLength
+        end
+
+        return math.max(1, width)
+    end
+
+    local function getWrappedLineCount(text, availableWidth)
+        local lineCount = 1
+        local lineWidth = 0
+        local spaceWidth = 4
+
+        for word in string.gmatch(text, "%S+") do
+            local wordWidth = measureText(word)
+            local requiredWidth = wordWidth
+            if lineWidth > 0 then
+                requiredWidth = lineWidth + spaceWidth + wordWidth
+            end
+
+            if requiredWidth <= availableWidth then
+                lineWidth = requiredWidth
+            else
+                if lineWidth > 0 then
+                    lineCount = lineCount + 1
+                end
+
+                local extraLines = math.floor(
+                    math.max(0, wordWidth - 1) / availableWidth
+                )
+                lineCount = lineCount + extraLines
+                lineWidth = wordWidth - extraLines * availableWidth
             end
         end
 
-        return math.max(1, count)
+        return lineCount
     end
 
     local function layout()
@@ -76,8 +138,8 @@ function HighlightPlayers.Indicator.New(
         panel:SetSize(width - 4, height - 4)
         accent:SetPosition(3, 3)
         accent:SetSize(4, math.max(8, height - 6))
-        badge:SetPosition(12, 2)
-        badge:SetSize(math.max(10, width - 16), height - 4)
+        badge:SetPosition(14, 3)
+        badge:SetSize(math.max(10, width - 24), height - 6)
     end
 
     local function applyDimensions(newWidth, newHeight)
@@ -102,20 +164,18 @@ function HighlightPlayers.Indicator.New(
     end
 
     local function applyTextDimensions(text)
-        local characterCount = getCharacterCount(text)
-        local characterWidth = 8
-        local horizontalPadding = 16
-        local desiredWidth = characterCount * characterWidth + horizontalPadding
+        local horizontalPadding = 30
+        local textAreaPadding = 24
+        local desiredWidth = measureText(text) + horizontalPadding
         local actualWidth = math.max(
             limits.MinWidth,
             math.min(settings.maxWidth, desiredWidth)
         )
-        local charactersPerLine = math.max(
-            1,
-            math.floor((actualWidth - horizontalPadding) / characterWidth)
+        local lineCount = getWrappedLineCount(
+            text,
+            math.max(1, actualWidth - textAreaPadding)
         )
-        local lineCount = math.ceil(characterCount / charactersPerLine)
-        local desiredHeight = 8 + lineCount * 16
+        local desiredHeight = 8 + lineCount * 15
 
         applyDimensions(actualWidth, desiredHeight)
     end
