@@ -30,6 +30,7 @@ function HighlightPlayers.Commands:GetHelp()
         "/eh move | lock",
         "/eh add <nickname>",
         "/eh add <nickname> <friend|neutral|enemy>",
+        "/eh info <nickname> - print the saved note",
         "/eh probe - print current target diagnostics",
         "/eh help"
     }, "\n")
@@ -74,6 +75,38 @@ function HighlightPlayers.Commands:Execute(arguments)
 
     if verb == "help" then
         Turbine.Shell.WriteLine(self:GetHelp())
+        return
+    end
+
+    if verb == "info" then
+        local name, extra = string.match(rest, "^(%S+)%s*(.-)%s*$")
+
+        if name == nil or name == "" or (extra ~= nil and extra ~= "") then
+            HighlightPlayers.Util.WriteError(
+                "Usage: /eh info <nickname>"
+            )
+            return
+        end
+
+        local record = self.relationships:GetByName(name)
+        if record == nil then
+            HighlightPlayers.Util.WriteError(
+                "No saved player named " .. name .. "."
+            )
+            return
+        end
+
+        local note = HighlightPlayers.Util.Trim(record.note)
+        if note == "" then
+            HighlightPlayers.Util.WriteInfo(
+                record.name .. " has no saved note."
+            )
+            return
+        end
+
+        HighlightPlayers.Util.WriteInfo(
+            "Note for " .. record.name .. ":\n" .. note
+        )
         return
     end
 
