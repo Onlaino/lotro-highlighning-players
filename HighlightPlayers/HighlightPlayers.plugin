@@ -4,7 +4,7 @@
     <Name>Enemy Highlight</Name>
     <Author>Onlaino</Author>
     <Version>0.1.0</Version>
-    <Description>Technical prototype for detecting the currently selected target.</Description>
+    <Description>Remember players as Friend, Neutral or Enemy and highlight the status of the selected target.</Description>
   </Information>
   <Package>HighlightPlayers.Main</Package>
   <Configuration Apartment="HighlightPlayers" />
