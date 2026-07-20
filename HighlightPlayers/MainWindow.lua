@@ -27,6 +27,12 @@ function HighlightPlayers.MainWindow.New(
     window:SetVisible(false)
 
     local selectedTab = HighlightPlayers.Constants.Status.Friend
+    local searchQueries = {
+        friend = "",
+        neutral = "",
+        enemy = ""
+    }
+    local updatingSearch = false
 
     local nameLabel = Turbine.UI.Label()
     nameLabel:SetParent(window)
@@ -80,6 +86,7 @@ function HighlightPlayers.MainWindow.New(
     messageLabel:SetVisible(false)
 
     local tabButtons = {}
+    local searchBox
 
     for index, status in ipairs(HighlightPlayers.Constants.StatusOrder) do
         local tabStatus = status
@@ -90,27 +97,52 @@ function HighlightPlayers.MainWindow.New(
 
         button.Click = function()
             selectedTab = tabStatus
+            updatingSearch = true
+            searchBox:SetText(searchQueries[selectedTab])
+            updatingSearch = false
             window.Refresh()
         end
 
         tabButtons[tabStatus] = button
     end
 
+    local searchLabel = Turbine.UI.Label()
+    searchLabel:SetParent(window)
+    searchLabel:SetPosition(20, 190)
+    searchLabel:SetSize(55, 20)
+    searchLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    searchLabel:SetText("Search")
+
+    searchBox = Turbine.UI.Lotro.TextBox()
+    searchBox:SetParent(window)
+    searchBox:SetPosition(78, 187)
+    searchBox:SetSize(320, 22)
+    searchBox:SetBackColor(Turbine.UI.Color(0.05, 0.05, 0.05))
+    searchBox:SetForeColor(Turbine.UI.Color.White)
+    searchBox:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    searchBox:SetMultiline(false)
+
+    local clearSearchButton = Turbine.UI.Lotro.Button()
+    clearSearchButton:SetParent(window)
+    clearSearchButton:SetPosition(408, 187)
+    clearSearchButton:SetSize(92, 22)
+    clearSearchButton:SetText("Clear")
+
     local list = Turbine.UI.ListBox()
     list:SetParent(window)
-    list:SetPosition(20, 187)
-    list:SetSize(width - 57, 245)
+    list:SetPosition(20, 219)
+    list:SetSize(width - 57, 213)
 
     local listScroll = Turbine.UI.Lotro.ScrollBar()
     listScroll:SetParent(window)
-    listScroll:SetPosition(width - 34, 187)
-    listScroll:SetSize(10, 245)
+    listScroll:SetPosition(width - 34, 219)
+    listScroll:SetSize(10, 213)
     listScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
     list:SetVerticalScrollBar(listScroll)
 
     local emptyLabel = Turbine.UI.Label()
     emptyLabel:SetParent(window)
-    emptyLabel:SetPosition(20, 270)
+    emptyLabel:SetPosition(20, 290)
     emptyLabel:SetSize(width - 40, 30)
     emptyLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
     emptyLabel:SetForeColor(Turbine.UI.Color(0.65, 0.65, 0.65))
@@ -152,7 +184,13 @@ function HighlightPlayers.MainWindow.New(
         end
 
         list:ClearItems()
-        local records = relationships:GetList(selectedTab)
+        local search = searchQueries[selectedTab]
+        local records = relationships:GetList(selectedTab, search)
+        if HighlightPlayers.Util.Trim(search) == "" then
+            emptyLabel:SetText("No saved players in this tab.")
+        else
+            emptyLabel:SetText("No players match the search.")
+        end
         emptyLabel:SetVisible(table.getn(records) == 0)
 
         for _, record in ipairs(records) do
@@ -172,6 +210,27 @@ function HighlightPlayers.MainWindow.New(
         end
 
         targetButton:SetEnabled(targetTracker:GetCurrentName() ~= nil)
+        clearSearchButton:SetEnabled(
+            HighlightPlayers.Util.Trim(searchQueries[selectedTab]) ~= ""
+        )
+    end
+
+    searchBox.TextChanged = function()
+        if updatingSearch then
+            return
+        end
+
+        searchQueries[selectedTab] = searchBox:GetText()
+        window.Refresh()
+    end
+
+    clearSearchButton.Click = function()
+        searchQueries[selectedTab] = ""
+        updatingSearch = true
+        searchBox:SetText("")
+        updatingSearch = false
+        window.Refresh()
+        searchBox:Focus()
     end
 
     window.Open = function()

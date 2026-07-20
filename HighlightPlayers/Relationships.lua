@@ -68,11 +68,16 @@ function HighlightPlayers.Relationships:GetByKey(key)
     return self.players[HighlightPlayers.Util.NormalizeName(key)]
 end
 
-function HighlightPlayers.Relationships:GetList(status)
+function HighlightPlayers.Relationships:GetList(status, searchValue)
     local result = {}
+    local search = HighlightPlayers.Util.NormalizeName(searchValue)
 
     for key, record in pairs(self.players) do
-        if record.status == status then
+        local normalizedName = HighlightPlayers.Util.NormalizeName(record.name)
+        local matchesSearch = search == "" or
+            string.find(normalizedName, search, 1, true) ~= nil
+
+        if record.status == status and matchesSearch then
             table.insert(result, {
                 key = key,
                 name = record.name,
