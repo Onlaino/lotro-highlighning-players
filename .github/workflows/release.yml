@@ -1,0 +1,53 @@
+name: Create release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tagged version
+        uses: actions/checkout@v6
+
+      - name: Validate plugin version
+        shell: bash
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          manifest_version="$(
+            sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' \
+              HighlightPlayers/HighlightPlayers.plugin
+          )"
+
+          if [ "$tag_version" != "$manifest_version" ]; then
+            echo "Tag version: $tag_version"
+            echo "Manifest version: $manifest_version"
+            echo "Tag and manifest versions do not match."
+            exit 1
+          fi
+
+      - name: Build installation archive
+        shell: bash
+        run: |
+          archive="Enemy-Highlight-${GITHUB_REF_NAME}.zip"
+          zip -r "$archive" HighlightPlayers
+          sha256sum "$archive" > "${archive}.sha256"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          archive="Enemy-Highlight-${GITHUB_REF_NAME}.zip"
+
+          gh release create "$GITHUB_REF_NAME" \
+            "$archive" \
+            "${archive}.sha256" \
+            --title "Enemy Highlight ${GITHUB_REF_NAME}" \
+            --generate-notes

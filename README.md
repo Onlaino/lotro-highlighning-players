@@ -171,3 +171,4 @@ PvMP-персонаж может возвращаться клиентом то�
 
 Сценарий проверки: [docs/manual-test.md](docs/manual-test.md).
 Результат исследования цели: [docs/prototype-test.md](docs/prototype-test.md).
+Инструкция по выпуску релизов: [docs/releasing.md](docs/releasing.md).
