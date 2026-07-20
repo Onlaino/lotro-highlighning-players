@@ -5,8 +5,8 @@ HighlightPlayers.Indicator = {}
 function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
     local settings = storage:GetData().settings.indicator
     local window = Turbine.UI.Window()
-    local width = 28
-    local height = 28
+    local width = 132
+    local height = 30
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -17,17 +17,17 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
     window:SetSize(width, height)
     window:SetPosition(left, top)
     window:SetZOrder(100)
+    window:SetBackColor(Turbine.UI.Color.Black)
     window:SetVisible(false)
 
-    local dot = Turbine.UI.Label()
-    dot:SetParent(window)
-    dot:SetSize(width, height)
-    dot:SetText("●")
-    dot:SetFont(Turbine.UI.Lotro.Font.TrajanPro24)
-    dot:SetFontStyle(Turbine.UI.FontStyle.Outline)
-    dot:SetOutlineColor(Turbine.UI.Color.Black)
-    dot:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter)
-    dot:SetMouseVisible(false)
+    local badge = Turbine.UI.Label()
+    badge:SetParent(window)
+    badge:SetPosition(2, 2)
+    badge:SetSize(width - 4, height - 4)
+    badge:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    badge:SetForeColor(Turbine.UI.Color.Black)
+    badge:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter)
+    badge:SetMouseVisible(false)
 
     local moving = false
     local moveX = 0
@@ -47,15 +47,21 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
         local record = getCurrentRecord()
 
         if record ~= nil then
-            dot:SetForeColor(
+            badge:SetBackColor(
                 HighlightPlayers.Constants.StatusColors[record.status]
             )
+            if moveMode then
+                badge:SetText("MOVE: " .. string.upper(record.status))
+            else
+                badge:SetText(string.upper(record.status))
+            end
             window:SetVisible(true)
             return
         end
 
         if moveMode then
-            dot:SetForeColor(Turbine.UI.Color(0.80, 0.80, 0.80))
+            badge:SetBackColor(Turbine.UI.Color(0.80, 0.80, 0.80))
+            badge:SetText("MOVE INDICATOR")
             window:SetVisible(true)
         else
             window:SetVisible(false)
@@ -113,7 +119,7 @@ function HighlightPlayers.Indicator.New(storage, relationships, targetTracker)
 
         if moveMode then
             HighlightPlayers.Util.WriteInfo(
-                "Indicator unlocked. Drag the dot, then use /eh lock."
+                "Indicator unlocked. Drag the badge, then use /eh lock."
             )
         else
             HighlightPlayers.Util.WriteInfo("Indicator locked.")
