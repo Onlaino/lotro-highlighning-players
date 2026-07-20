@@ -42,7 +42,7 @@ function HighlightPlayers.Indicator.New(
 
     local badge = Turbine.UI.Label()
     badge:SetParent(window)
-    badge:SetFont(Turbine.UI.Lotro.Font.Verdana12)
+    badge:SetFont(Turbine.UI.Lotro.Font.Verdana14)
     badge:SetForeColor(Turbine.UI.Color(0.96, 0.90, 0.72))
     badge:SetOutlineColor(Turbine.UI.Color.Black)
     badge:SetFontStyle(Turbine.UI.FontStyle.Outline)
@@ -103,7 +103,7 @@ function HighlightPlayers.Indicator.New(
 
     local function applyTextDimensions(text)
         local characterCount = getCharacterCount(text)
-        local characterWidth = 7
+        local characterWidth = 8
         local horizontalPadding = 16
         local desiredWidth = characterCount * characterWidth + horizontalPadding
         local actualWidth = math.max(
@@ -115,7 +115,7 @@ function HighlightPlayers.Indicator.New(
             math.floor((actualWidth - horizontalPadding) / characterWidth)
         )
         local lineCount = math.ceil(characterCount / charactersPerLine)
-        local desiredHeight = 8 + lineCount * 14
+        local desiredHeight = 8 + lineCount * 16
 
         applyDimensions(actualWidth, desiredHeight)
     end
