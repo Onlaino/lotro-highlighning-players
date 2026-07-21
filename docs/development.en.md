@@ -31,6 +31,7 @@ only be performed inside the game client.
 | `HighlightPlayers/Relationships.lua` | Player records and session indexes |
 | `HighlightPlayers/TargetTracker.lua` | Current-target event and state |
 | `HighlightPlayers/Indicator.lua` | On-screen indicator |
+| `HighlightPlayers/PlayerNoteWindow.lua` | Quick note editing for the current target |
 | `HighlightPlayers/*Window.lua` | Main window, player card, and label management |
 | `HighlightPlayers/Launcher.lua` | Floating launcher |
 | `HighlightPlayers/Commands.lua` | `/eh` commands |
@@ -70,12 +71,19 @@ Never assume every field or type is valid: PluginData may come from an older
 version or may have been edited manually. Do not change a label's stable ID
 when changing its display name.
 
+Version 4 adds the `noteWindow` position and
+`settings.indicator.showNoteTooltip`. When version 3 is loaded, missing fields
+receive safe defaults and player records remain unchanged.
+
 ## Events and performance
 
 - Target reads happen on `TargetChanged`, not every frame.
 - Exact name matching uses a table keyed by the normalized name.
 - Lists use session indexes rebuilt after mutations.
 - Hidden UI must not take keyboard focus or intercept the mouse.
+- The indicator always participates in hit testing, so hover and short clicks
+  work in every mode. `/eh move` enables dragging, while `/eh lock` only
+  prevents position changes.
 - A background timer or `Update` handler requires a specific justification and
   in-client performance testing.
 

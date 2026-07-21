@@ -60,7 +60,8 @@ Open the window with `Manage labels` or `/eh labels`. You can:
 - enter RGB components from `0` to `255`;
 - view the number of assigned players;
 - remove an unused label;
-- set the indicator's maximum width and height.
+- set the indicator's maximum width and height;
+- enable or disable `Show note tooltip`.
 
 A label name is required, limited to 32 characters, and case-insensitively
 unique. The final label cannot be removed. A label in use can only be removed
@@ -74,11 +75,23 @@ and the limits configured in `Manage labels`.
 To reposition it:
 
 1. run `/eh move`;
-2. drag the indicator marked `[drag]` with the left mouse button;
+2. drag the indicator marked `[click / drag]` with the left mouse button;
 3. run `/eh lock`.
 
-Once locked, the indicator does not intercept clicks intended for the game UI.
+After `/eh lock`, dragging is disabled but the indicator remains interactive.
 Its position and size limits are saved automatically.
+
+In every mode:
+
+- when `Show note tooltip` is enabled, hovering shows the full player name,
+  label name, and non-empty note;
+- a short click without dragging opens a dedicated note window;
+- the note can be edited and saved with `Save note`;
+- after saving, the tooltip updates immediately without changing targets.
+
+An empty note does not produce a tooltip, but clicking still opens an empty
+editor. `/eh move` additionally enables dragging, while `/eh lock` fixes the
+indicator position again.
 
 ## Floating launcher
 
@@ -94,7 +107,7 @@ to move it. The position is saved when you release the button.
 | `/eh show` | Open the main window |
 | `/eh hide` | Hide the main window |
 | `/eh move` | Show and unlock the indicator |
-| `/eh lock` | Lock the indicator and pass clicks through |
+| `/eh lock` | Lock the indicator position |
 | `/eh labels` | Open label management |
 | `/eh add <nickname>` | Open a card with a prefilled name |
 | `/eh add <nickname> <label name>` | Assign the specified label immediately |

@@ -29,6 +29,10 @@ local function defaultData()
                 left = 250,
                 top = 190
             },
+            noteWindow = {
+                left = 275,
+                top = 205
+            },
             labelsWindow = {
                 left = 300,
                 top = 180
@@ -42,6 +46,7 @@ local function defaultData()
                 top = 65,
                 maxWidth = indicator.DefaultMaxWidth,
                 maxHeight = indicator.DefaultMaxHeight,
+                showNoteTooltip = true,
                 locked = true
             }
         }
@@ -119,6 +124,7 @@ local function normalizeLoadedData(loaded)
     normalizeLabels(loaded, defaults)
     ensurePosition(loaded.settings, "mainWindow", defaults.settings.mainWindow)
     ensurePosition(loaded.settings, "cardWindow", defaults.settings.cardWindow)
+    ensurePosition(loaded.settings, "noteWindow", defaults.settings.noteWindow)
     ensurePosition(
         loaded.settings,
         "labelsWindow",
@@ -146,6 +152,10 @@ local function normalizeLoadedData(loaded)
 
     if type(indicator.locked) ~= "boolean" then
         indicator.locked = true
+    end
+
+    if type(indicator.showNoteTooltip) ~= "boolean" then
+        indicator.showNoteTooltip = true
     end
 
     loaded.version = HighlightPlayers.Constants.DataVersion

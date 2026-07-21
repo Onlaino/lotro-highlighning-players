@@ -63,10 +63,14 @@ matching.
 
 ### Notes on the target indicator
 
-The preferred interaction is to keep the label visible and show the full
-player name, label, and note in a tooltip. Empty notes should not produce an
-empty tooltip, edits should update immediately, and `/eh lock` must continue to
-pass clicks through. A short second line may be prototyped separately.
+Status: implemented, pending manual verification in LOTRO.
+
+The label remains visible. In every mode, hovering shows the full player name,
+label, and non-empty note. A short click without dragging opens a dedicated
+note editor, and saving refreshes the tooltip immediately. `Show note tooltip`
+is configured in `Manage labels`. `/eh move` enables dragging, while `/eh lock`
+only fixes the indicator position. A short second note line remains a separate
+follow-up after the primary interaction is verified.
 
 ### Current-target commands
 

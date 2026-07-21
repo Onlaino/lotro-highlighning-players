@@ -13,6 +13,7 @@ function HighlightPlayers.App.New(pluginInstance)
         indicator = nil,
         labelsWindow = nil,
         cardWindow = nil,
+        noteWindow = nil,
         mainWindow = nil,
         launcher = nil,
         commands = nil,
@@ -41,22 +42,28 @@ function HighlightPlayers.App:Start()
     self.targetTracker = HighlightPlayers.TargetTracker.New()
     self.targetTracker:Start()
 
+    self.cardWindow = HighlightPlayers.PlayerCardWindow.New(
+        self.storage,
+        self.relationships,
+        self.labels
+    )
+    self.noteWindow = HighlightPlayers.PlayerNoteWindow.New(
+        self.storage,
+        self.relationships,
+        self.labels
+    )
     self.indicator = HighlightPlayers.Indicator.New(
         self.storage,
         self.relationships,
         self.labels,
-        self.targetTracker
+        self.targetTracker,
+        self.noteWindow
     )
     self.labelsWindow = HighlightPlayers.LabelsWindow.New(
         self.storage,
         self.labels,
         self.relationships,
         self.indicator
-    )
-    self.cardWindow = HighlightPlayers.PlayerCardWindow.New(
-        self.storage,
-        self.relationships,
-        self.labels
     )
     self.mainWindow = HighlightPlayers.MainWindow.New(
         self.storage,
@@ -97,6 +104,7 @@ function HighlightPlayers.App:Stop()
     self.launcher.Stop()
     self.mainWindow.Stop()
     self.cardWindow.Stop()
+    self.noteWindow.Stop()
     self.labelsWindow.Stop()
     self.indicator.Stop()
     self.targetTracker:Stop()

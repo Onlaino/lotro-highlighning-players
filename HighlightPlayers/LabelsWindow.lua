@@ -142,13 +142,20 @@ function HighlightPlayers.LabelsWindow.New(
     sizeHint:SetMultiline(true)
     sizeHint:SetForeColor(Turbine.UI.Color(0.70, 0.70, 0.70))
     sizeHint:SetText(
-        "The badge grows with its text up to these limits. Position: /eh move"
+        "Click opens the note; /eh move also enables indicator dragging."
     )
+
+    local showTooltipCheck = Turbine.UI.Lotro.CheckBox()
+    showTooltipCheck:SetParent(window)
+    showTooltipCheck:SetPosition(235, 337)
+    showTooltipCheck:SetSize(300, 20)
+    showTooltipCheck:SetText("Show note tooltip")
+    showTooltipCheck:SetChecked(indicatorSettings.showNoteTooltip == true)
 
     local messageLabel = Turbine.UI.Label()
     messageLabel:SetParent(window)
-    messageLabel:SetPosition(20, 350)
-    messageLabel:SetSize(width - 40, 45)
+    messageLabel:SetPosition(20, 363)
+    messageLabel:SetSize(width - 40, 32)
     messageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     messageLabel:SetMultiline(true)
     messageLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
@@ -352,6 +359,10 @@ function HighlightPlayers.LabelsWindow.New(
     redBox.TextChanged = updatePreview
     greenBox.TextChanged = updatePreview
     blueBox.TextChanged = updatePreview
+    showTooltipCheck.CheckedChanged = function()
+        indicator.SetShowNoteTooltip(showTooltipCheck:IsChecked())
+        showMessage("Note tooltip setting saved.", false)
+    end
 
     window.Open = function()
         local newLeft, newTop = HighlightPlayers.Util.ClampPosition(
@@ -363,6 +374,9 @@ function HighlightPlayers.LabelsWindow.New(
         window:SetPosition(newLeft, newTop)
         widthBox:SetText(tostring(indicatorSettings.maxWidth))
         heightBox:SetText(tostring(indicatorSettings.maxHeight))
+        showTooltipCheck:SetChecked(
+            indicatorSettings.showNoteTooltip == true
+        )
 
         loadLabel(labels:GetById(selectedId) or labels:GetFirst())
 
