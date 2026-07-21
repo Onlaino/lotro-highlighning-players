@@ -1,6 +1,7 @@
 # Выпуск релиза Enemy Highlight
 
-**Русский** | [English](releasing.en.md)
+**Русский** | [English](releasing.en.md) ·
+[Руководство разработчика](development.md)
 
 Релизы создаются автоматически через GitHub Actions. Workflow находится в
 `.github/workflows/release.yml` и запускается после отправки тега вида `v*`,
@@ -38,14 +39,15 @@ Workflow дополнительно ограничивает выданные п
 3. Изменить `<Version>` в
    `HighlightPlayers/HighlightPlayers.plugin` на новую версию без префикса
    `v`, например `0.1.0`.
-4. При необходимости обновить README и заметки о важных изменениях.
+4. Обновить пользовательскую документацию, roadmap и заметки о важных
+   изменениях.
 5. Закоммитить и отправить `staging`.
 
 Пример:
 
 ```powershell
 git switch staging
-git add -- HighlightPlayers README.md docs
+git add -- HighlightPlayers README.md README.en.md CONTRIBUTING.md CONTRIBUTING.en.md SECURITY.md docs .github
 git commit -m "chore: prepare v0.1.0 release"
 git push upstream staging
 ```
