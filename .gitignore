@@ -1,0 +1,15 @@
+# Internal planning notes are local-only.
+/tasks/
+/docs/tasks/
+
+# Editor and operating-system files.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.tmp
+
+# Local release artifacts.
+Enemy-Highlight-v*.zip
+Enemy-Highlight-v*.zip.sha256

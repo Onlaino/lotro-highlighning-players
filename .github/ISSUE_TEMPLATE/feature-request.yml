@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose a user-facing improvement
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check the public roadmap and existing issues before proposing a feature.
+  - type: textarea
+    id: scenario
+    attributes:
+      label: User scenario
+      description: What are you trying to accomplish in LOTRO?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the interaction or command from a user's point of view.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: How do you handle this today, and what other approaches did you consider?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked the roadmap and existing issues.
+          required: true
+        - label: This request does not rely on automatic nearby-player scanning or guaranteed PvMP allegiance detection.
+          required: true

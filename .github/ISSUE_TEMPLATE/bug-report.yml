@@ -1,0 +1,53 @@
+name: Bug report
+description: Report reproducible incorrect behavior or a Lua error
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Please do not include private player notes or PluginData.
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      description: The version shown in the manifest or load message.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: LOTRO client
+      options:
+        - 64-bit client
+        - Other or unknown
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: Describe what happened and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Load the plugin
+        2. Run ...
+        3. Select ...
+    validations:
+      required: true
+  - type: textarea
+    id: errors
+    attributes:
+      label: Lua error or diagnostic output
+      description: Paste the complete error text or relevant `/eh probe` output. Remove private names and notes.
+      render: text
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add screenshots, UI scale, resolution, migration history, or anything else that may help.

@@ -1,6 +1,7 @@
 # Releasing Enemy Highlight
 
-[Русский](releasing.md) | **English**
+[Русский](releasing.md) | **English** ·
+[Development guide](development.en.md)
 
 Releases are created automatically by GitHub Actions. The workflow is stored in
 `.github/workflows/release.yml` and runs whenever a tag matching `v*`, such as
@@ -35,14 +36,14 @@ Before a release:
 2. Test the plugin inside LOTRO using `docs/manual-test.md`.
 3. Change `<Version>` in `HighlightPlayers/HighlightPlayers.plugin` to the new
    version without the `v` prefix, for example `0.2.0`.
-4. Update the README and important notes when needed.
+4. Update the user documentation, roadmap, and important notes.
 5. Commit and push `staging`.
 
 Example:
 
 ```powershell
 git switch staging
-git add -- HighlightPlayers README.md README.en.md docs
+git add -- HighlightPlayers README.md README.en.md CONTRIBUTING.md CONTRIBUTING.en.md SECURITY.md docs .github
 git commit -m "chore: prepare v0.2.0 release"
 git push upstream staging
 ```
