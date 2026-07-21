@@ -6,7 +6,8 @@ function HighlightPlayers.Indicator.New(
     storage,
     relationships,
     labels,
-    targetTracker
+    targetTracker,
+    noteWindow
 )
     local settings = storage:GetData().settings.indicator
     local limits = HighlightPlayers.Constants.Indicator
@@ -50,10 +51,35 @@ function HighlightPlayers.Indicator.New(
     badge:SetMultiline(true)
     badge:SetMouseVisible(false)
 
+    local tooltipWindow = Turbine.UI.Window()
+    tooltipWindow:SetZOrder(110)
+    tooltipWindow:SetBackColor(Turbine.UI.Color.Black)
+    tooltipWindow:SetMouseVisible(false)
+    tooltipWindow:SetVisible(false)
+
+    local tooltipPanel = Turbine.UI.Control()
+    tooltipPanel:SetParent(tooltipWindow)
+    tooltipPanel:SetPosition(2, 2)
+    tooltipPanel:SetBackColor(Turbine.UI.Color(0.07, 0.07, 0.06))
+    tooltipPanel:SetMouseVisible(false)
+
+    local tooltipLabel = Turbine.UI.Label()
+    tooltipLabel:SetParent(tooltipWindow)
+    tooltipLabel:SetPosition(10, 8)
+    tooltipLabel:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    tooltipLabel:SetForeColor(Turbine.UI.Color.White)
+    tooltipLabel:SetMultiline(true)
+    tooltipLabel:SetTextAlignment(Turbine.UI.ContentAlignment.TopLeft)
+    tooltipLabel:SetMouseVisible(false)
+
     local moving = false
+    local pressed = false
     local moveX = 0
     local moveY = 0
+    local dragged = false
     local moveMode = settings.locked ~= true
+    local hovering = false
+    local tooltipValue = nil
 
     local function getCharacterMetrics(text, index)
         local firstByte = string.byte(text, index)
@@ -102,33 +128,40 @@ function HighlightPlayers.Indicator.New(
     end
 
     local function getWrappedLineCount(text, availableWidth)
-        local lineCount = 1
-        local lineWidth = 0
-        local spaceWidth = 4
+        local totalLineCount = 0
+        local normalizedText = string.gsub(tostring(text or ""), "\r", "")
 
-        for word in string.gmatch(text, "%S+") do
-            local wordWidth = measureText(word)
-            local requiredWidth = wordWidth
-            if lineWidth > 0 then
-                requiredWidth = lineWidth + spaceWidth + wordWidth
-            end
+        for line in string.gmatch(normalizedText .. "\n", "(.-)\n") do
+            local lineCount = 1
+            local lineWidth = 0
+            local spaceWidth = 4
 
-            if requiredWidth <= availableWidth then
-                lineWidth = requiredWidth
-            else
+            for word in string.gmatch(line, "%S+") do
+                local wordWidth = measureText(word)
+                local requiredWidth = wordWidth
                 if lineWidth > 0 then
-                    lineCount = lineCount + 1
+                    requiredWidth = lineWidth + spaceWidth + wordWidth
                 end
 
-                local extraLines = math.floor(
-                    math.max(0, wordWidth - 1) / availableWidth
-                )
-                lineCount = lineCount + extraLines
-                lineWidth = wordWidth - extraLines * availableWidth
+                if requiredWidth <= availableWidth then
+                    lineWidth = requiredWidth
+                else
+                    if lineWidth > 0 then
+                        lineCount = lineCount + 1
+                    end
+
+                    local extraLines = math.floor(
+                        math.max(0, wordWidth - 1) / availableWidth
+                    )
+                    lineCount = lineCount + extraLines
+                    lineWidth = wordWidth - extraLines * availableWidth
+                end
             end
+
+            totalLineCount = totalLineCount + lineCount
         end
 
-        return lineCount
+        return math.max(1, totalLineCount)
     end
 
     local function layout()
@@ -189,13 +222,89 @@ function HighlightPlayers.Indicator.New(
         return relationships:GetByName(targetName)
     end
 
+    local function layoutTooltip()
+        if tooltipValue == nil then
+            return
+        end
+
+        local desiredWidth = 220
+        local normalizedText = string.gsub(tooltipValue, "\r", "")
+        for line in string.gmatch(normalizedText .. "\n", "(.-)\n") do
+            desiredWidth = math.max(desiredWidth, measureText(line) + 24)
+        end
+
+        local tooltipWidth = math.min(420, desiredWidth)
+        local lineCount = getWrappedLineCount(
+            tooltipValue,
+            math.max(1, tooltipWidth - 20)
+        )
+        local tooltipHeight = math.min(
+            math.max(52, 16 + lineCount * 16),
+            math.max(52, Turbine.UI.Display.GetHeight() - 20)
+        )
+
+        tooltipWindow:SetSize(tooltipWidth, tooltipHeight)
+        tooltipPanel:SetSize(tooltipWidth - 4, tooltipHeight - 4)
+        tooltipLabel:SetSize(tooltipWidth - 20, tooltipHeight - 16)
+
+        local tooltipLeft = window:GetLeft()
+        local tooltipTop = window:GetTop() + height + 5
+        if tooltipTop + tooltipHeight > Turbine.UI.Display.GetHeight() then
+            tooltipTop = window:GetTop() - tooltipHeight - 5
+        end
+
+        tooltipLeft, tooltipTop = HighlightPlayers.Util.ClampPosition(
+            tooltipLeft,
+            tooltipTop,
+            tooltipWidth,
+            tooltipHeight
+        )
+        tooltipWindow:SetPosition(tooltipLeft, tooltipTop)
+    end
+
+    local function showTooltip()
+        if moving or tooltipValue == nil then
+            tooltipWindow:SetVisible(false)
+            return
+        end
+
+        layoutTooltip()
+        tooltipWindow:SetVisible(true)
+    end
+
+    local function updateToolTip(record, label)
+        local note = record ~= nil and
+            HighlightPlayers.Util.Trim(record.note) or ""
+
+        if settings.showNoteTooltip == true and label ~= nil and note ~= "" then
+            tooltipValue = record.name .. "\n" ..
+                HighlightPlayers.Localization.Get("tooltip_label", {
+                    label = label.name
+                }) .. "\n\n" .. note
+            tooltipLabel:SetText(tooltipValue)
+            if hovering then
+                showTooltip()
+            end
+            return
+        end
+
+        tooltipValue = nil
+        tooltipLabel:SetText("")
+        tooltipWindow:SetVisible(false)
+    end
+
     local function update()
         local record = getCurrentRecord()
         local label = record ~= nil and labels:GetById(record.labelId) or nil
 
+        updateToolTip(record, label)
+
         if label ~= nil then
             local color = labels:GetColor(label)
-            local text = moveMode and (label.name .. "  [drag]") or label.name
+            local text = moveMode and
+                (label.name .. "  " ..
+                    HighlightPlayers.Localization.Get("indicator_marker")) or
+                label.name
             accent:SetBackColor(color)
             badge:SetText(text)
             applyTextDimensions(text)
@@ -211,10 +320,14 @@ function HighlightPlayers.Indicator.New(
             local moveColor = Turbine.UI.Color(0.82, 0.61, 0.20)
             accent:SetBackColor(moveColor)
             frame:SetBackColor(moveColor)
-            badge:SetText("Drag indicator")
-            applyTextDimensions("Drag indicator")
+            local dragText = HighlightPlayers.Localization.Get(
+                "drag_indicator"
+            )
+            badge:SetText(dragText)
+            applyTextDimensions(dragText)
             window:SetVisible(true)
         else
+            tooltipWindow:SetVisible(false)
             window:SetVisible(false)
         end
     end
@@ -226,13 +339,13 @@ function HighlightPlayers.Indicator.New(
     end
 
     window.MouseDown = function(sender, args)
-        if not moveMode then
-            return
-        end
-
+        pressed = true
         moveX = args.X
         moveY = args.Y
-        moving = true
+        moving = moveMode
+        dragged = false
+        hovering = false
+        tooltipWindow:SetVisible(false)
     end
 
     window.MouseMove = function(sender, args)
@@ -240,8 +353,15 @@ function HighlightPlayers.Indicator.New(
             return
         end
 
-        local newLeft = window:GetLeft() - (moveX - args.X)
-        local newTop = window:GetTop() - (moveY - args.Y)
+        local deltaX = args.X - moveX
+        local deltaY = args.Y - moveY
+        if not dragged and math.abs(deltaX) <= 2 and math.abs(deltaY) <= 2 then
+            return
+        end
+        dragged = true
+
+        local newLeft = window:GetLeft() + deltaX
+        local newTop = window:GetTop() + deltaY
         newLeft, newTop = HighlightPlayers.Util.ClampPosition(
             newLeft,
             newTop,
@@ -252,28 +372,52 @@ function HighlightPlayers.Indicator.New(
     end
 
     window.MouseUp = function()
-        if not moving then
+        if not pressed then
             return
         end
 
+        pressed = false
         moving = false
-        savePosition()
+        if dragged then
+            savePosition()
+        else
+            local record = getCurrentRecord()
+            if record ~= nil then
+                noteWindow.OpenExisting(record.name)
+            end
+        end
+        dragged = false
+    end
+
+    window.MouseEnter = function()
+        hovering = true
+        showTooltip()
+    end
+
+    window.MouseLeave = function()
+        hovering = false
+        tooltipWindow:SetVisible(false)
     end
 
     window.SetMoveMode = function(enabled)
         moveMode = enabled == true
+        pressed = false
         moving = false
+        hovering = false
+        tooltipWindow:SetVisible(false)
         settings.locked = not moveMode
-        window:SetMouseVisible(moveMode)
+        window:SetMouseVisible(true)
         update()
         storage:Save()
 
         if moveMode then
             HighlightPlayers.Util.WriteInfo(
-                "Indicator unlocked. Drag the badge, then use /eh lock."
+                HighlightPlayers.Localization.Get("indicator_interactive")
             )
         else
-            HighlightPlayers.Util.WriteInfo("Indicator locked.")
+            HighlightPlayers.Util.WriteInfo(
+                HighlightPlayers.Localization.Get("indicator_locked")
+            )
         end
     end
 
@@ -297,6 +441,12 @@ function HighlightPlayers.Indicator.New(
         update()
     end
 
+    window.SetShowNoteTooltip = function(enabled)
+        settings.showNoteTooltip = enabled == true
+        update()
+        storage:Save()
+    end
+
     window.IsMoveMode = function()
         return moveMode
     end
@@ -315,17 +465,23 @@ function HighlightPlayers.Indicator.New(
         update()
     end)
 
+    local localeListener = HighlightPlayers.Localization.AddListener(function()
+        update()
+    end)
+
     window.Stop = function()
         targetTracker:RemoveListener(targetListener)
         relationships:RemoveListener(relationshipListener)
         labels:RemoveListener(labelsListener)
+        HighlightPlayers.Localization.RemoveListener(localeListener)
         settings.left = window:GetLeft()
         settings.top = window:GetTop()
         settings.locked = not moveMode
+        tooltipWindow:SetVisible(false)
         window:SetVisible(false)
     end
 
-    window:SetMouseVisible(moveMode)
+    window:SetMouseVisible(true)
     layout()
     update()
     return window

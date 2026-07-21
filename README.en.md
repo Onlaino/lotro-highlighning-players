@@ -14,7 +14,8 @@ target.
 
 - custom labels with editable names and RGB colors;
 - notes and search across saved characters;
-- a label indicator for the current target;
+- a target indicator with a note tooltip and quick note editing;
+- English, French, German, and Russian interface languages;
 - player management through the UI and `/eh` chat commands;
 - one shared database per server, isolated from other servers;
 - automatic data migration when the storage format changes.

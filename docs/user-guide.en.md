@@ -38,6 +38,21 @@ double `HighlightPlayers\HighlightPlayers` directory.
 4. If needed, click the name in the list and add a note in the player card.
 5. Select that character again to see the label next to the target frame.
 
+## Interface language
+
+English, French, German, and Russian are available. `Automatic` uses the LOTRO
+client language and falls back to English for an unknown language.
+
+Change the language in either way:
+
+- cycle the `Language` button in the LOTRO plugin options;
+- run `/eh language <auto|en|fr|de|ru>`.
+
+Open windows, tooltips, and messages update immediately. The selection is
+stored in PluginData and survives reloads. User-defined label names, including
+the default `Friend`, `Neutral`, and `Enemy` labels, are saved data and are not
+translated automatically.
+
 ## Main window
 
 The top area contains `Player name`, `Use target`, the label selector,
@@ -60,7 +75,8 @@ Open the window with `Manage labels` or `/eh labels`. You can:
 - enter RGB components from `0` to `255`;
 - view the number of assigned players;
 - remove an unused label;
-- set the indicator's maximum width and height.
+- set the indicator's maximum width and height;
+- enable or disable `Show note tooltip`.
 
 A label name is required, limited to 32 characters, and case-insensitively
 unique. The final label cannot be removed. A label in use can only be removed
@@ -74,11 +90,23 @@ and the limits configured in `Manage labels`.
 To reposition it:
 
 1. run `/eh move`;
-2. drag the indicator marked `[drag]` with the left mouse button;
+2. drag the indicator marked `[click / drag]` with the left mouse button;
 3. run `/eh lock`.
 
-Once locked, the indicator does not intercept clicks intended for the game UI.
+After `/eh lock`, dragging is disabled but the indicator remains interactive.
 Its position and size limits are saved automatically.
+
+In every mode:
+
+- when `Show note tooltip` is enabled, hovering shows the full player name,
+  label name, and non-empty note;
+- a short click without dragging opens a dedicated note window;
+- the note can be edited and saved with `Save note`;
+- after saving, the tooltip updates immediately without changing targets.
+
+An empty note does not produce a tooltip, but clicking still opens an empty
+editor. `/eh move` additionally enables dragging, while `/eh lock` fixes the
+indicator position again.
 
 ## Floating launcher
 
@@ -94,12 +122,13 @@ to move it. The position is saved when you release the button.
 | `/eh show` | Open the main window |
 | `/eh hide` | Hide the main window |
 | `/eh move` | Show and unlock the indicator |
-| `/eh lock` | Lock the indicator and pass clicks through |
+| `/eh lock` | Lock the indicator position |
 | `/eh labels` | Open label management |
 | `/eh add <nickname>` | Open a card with a prefilled name |
 | `/eh add <nickname> <label name>` | Assign the specified label immediately |
 | `/eh info <nickname>` | Print the saved note to chat |
 | `/eh probe` | Print current-target diagnostics |
+| `/eh language <auto\|en\|fr\|de\|ru>` | Change the interface language |
 | `/eh help` | Show a short command reference |
 
 The label name passed to `/eh add` may contain spaces. Adding an existing name

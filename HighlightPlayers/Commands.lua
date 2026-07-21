@@ -29,15 +29,16 @@ end
 
 function HighlightPlayers.Commands:GetHelp()
     return table.concat({
-        "/eh - toggle the main window",
-        "/eh show | hide",
-        "/eh move | lock",
-        "/eh labels - manage labels and indicator size",
-        "/eh add <nickname>",
-        "/eh add <nickname> <label name>",
-        "/eh info <nickname> - print the saved note",
-        "/eh probe - print current target diagnostics",
-        "/eh help"
+        HighlightPlayers.Localization.Get("help_toggle"),
+        HighlightPlayers.Localization.Get("help_show_hide"),
+        HighlightPlayers.Localization.Get("help_move_lock"),
+        HighlightPlayers.Localization.Get("help_labels"),
+        HighlightPlayers.Localization.Get("help_add"),
+        HighlightPlayers.Localization.Get("help_add_label"),
+        HighlightPlayers.Localization.Get("help_info"),
+        HighlightPlayers.Localization.Get("help_probe"),
+        HighlightPlayers.Localization.Get("help_language"),
+        HighlightPlayers.Localization.Get("help_help")
     }, "\n")
 end
 
@@ -88,12 +89,28 @@ function HighlightPlayers.Commands:Execute(arguments)
         return
     end
 
+    if verb == "language" then
+        local succeeded, languageOrError =
+            HighlightPlayers.Localization.SetLanguage(rest)
+        if not succeeded then
+            HighlightPlayers.Util.WriteError(languageOrError)
+            return
+        end
+
+        HighlightPlayers.Util.WriteInfo(
+            HighlightPlayers.Localization.Get("language_changed", {
+                language = languageOrError
+            })
+        )
+        return
+    end
+
     if verb == "info" then
         local name, extra = string.match(rest, "^(%S+)%s*(.-)%s*$")
 
         if name == nil or name == "" or (extra ~= nil and extra ~= "") then
             HighlightPlayers.Util.WriteError(
-                "Usage: /eh info <nickname>"
+                HighlightPlayers.Localization.Get("usage_info")
             )
             return
         end
@@ -101,7 +118,9 @@ function HighlightPlayers.Commands:Execute(arguments)
         local record = self.relationships:GetByName(name)
         if record == nil then
             HighlightPlayers.Util.WriteError(
-                "No saved player named " .. name .. "."
+                HighlightPlayers.Localization.Get("no_saved_player", {
+                    name = name
+                })
             )
             return
         end
@@ -109,14 +128,17 @@ function HighlightPlayers.Commands:Execute(arguments)
         local note = HighlightPlayers.Util.Trim(record.note)
         if note == "" then
             HighlightPlayers.Util.WriteInfo(
-                record.name .. " has no saved note."
+                HighlightPlayers.Localization.Get("player_has_no_note", {
+                    name = record.name
+                })
             )
             return
         end
 
-        HighlightPlayers.Util.WriteInfo(
-            "Note for " .. record.name .. ":\n" .. note
-        )
+        HighlightPlayers.Util.WriteInfo(HighlightPlayers.Localization.Get(
+            "note_for",
+            { name = record.name, note = note }
+        ))
         return
     end
 
@@ -125,7 +147,7 @@ function HighlightPlayers.Commands:Execute(arguments)
 
         if name == nil or name == "" then
             HighlightPlayers.Util.WriteError(
-                "Usage: /eh add <nickname> [label name]"
+                HighlightPlayers.Localization.Get("usage_add")
             )
             return
         end
@@ -138,7 +160,9 @@ function HighlightPlayers.Commands:Execute(arguments)
         local label = self.labels:FindByName(labelName)
         if label == nil then
             HighlightPlayers.Util.WriteError(
-                "Unknown label: " .. labelName .. ". Use /eh labels."
+                HighlightPlayers.Localization.Get("unknown_label", {
+                    label = labelName
+                })
             )
             return
         end
@@ -157,13 +181,18 @@ function HighlightPlayers.Commands:Execute(arguments)
 
         if persisted then
             HighlightPlayers.Util.WriteInfo(
-                "Saved " .. result.name .. " as " .. label.name .. "."
+                HighlightPlayers.Localization.Get("saved_as", {
+                    name = result.name,
+                    label = label.name
+                })
             )
         end
         return
     end
 
-    HighlightPlayers.Util.WriteError("Unknown command. Use /eh help.")
+    HighlightPlayers.Util.WriteError(
+        HighlightPlayers.Localization.Get("unknown_command")
+    )
 end
 
 function HighlightPlayers.Commands:Start()
@@ -175,7 +204,7 @@ function HighlightPlayers.Commands:Start()
     local command = Turbine.ShellCommand()
 
     function command:GetShortHelp()
-        return "/eh help - Enemy Highlight commands"
+        return HighlightPlayers.Localization.Get("short_help")
     end
 
     function command:GetHelp()

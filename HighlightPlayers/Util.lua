@@ -17,19 +17,19 @@ function HighlightPlayers.Util.ValidateName(value)
     local name = HighlightPlayers.Util.Trim(value)
 
     if name == "" then
-        return false, "Player name is required."
+        return false, HighlightPlayers.Localization.Get("player_name_required")
     end
 
     if string.len(name) > 64 then
-        return false, "Player name is too long."
+        return false, HighlightPlayers.Localization.Get("player_name_too_long")
     end
 
     if string.find(name, "%s") ~= nil then
-        return false, "Player name cannot contain spaces."
+        return false, HighlightPlayers.Localization.Get("player_name_spaces")
     end
 
     if string.find(name, "[%c]") ~= nil then
-        return false, "Player name contains invalid characters."
+        return false, HighlightPlayers.Localization.Get("player_name_invalid")
     end
 
     return true, name
@@ -37,7 +37,7 @@ end
 
 function HighlightPlayers.Util.SafeMethod(object, methodName)
     if object == nil then
-        return false, nil, "object is nil"
+        return false, nil, HighlightPlayers.Localization.Get("object_nil")
     end
 
     local lookupSucceeded, method = pcall(function()
@@ -45,7 +45,10 @@ function HighlightPlayers.Util.SafeMethod(object, methodName)
     end)
 
     if not lookupSucceeded or type(method) ~= "function" then
-        return false, nil, methodName .. " is unavailable"
+        return false, nil, HighlightPlayers.Localization.Get(
+            "method_unavailable",
+            { method = methodName }
+        )
     end
 
     local callSucceeded, value = pcall(method, object)

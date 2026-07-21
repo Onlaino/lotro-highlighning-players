@@ -24,6 +24,8 @@ only be performed inside the game client.
 | `HighlightPlayers/HighlightPlayers.plugin` | Manifest and plugin version |
 | `HighlightPlayers/Main.lua` | Entry point |
 | `HighlightPlayers/__init__.lua` | Module import order |
+| `HighlightPlayers/Localization.lua` | Language selection, fallback, and change listeners |
+| `HighlightPlayers/Locale/*.lua` | EN/FR/DE/RU dictionaries |
 | `HighlightPlayers/App.lua` | Component creation and lifecycle |
 | `HighlightPlayers/Constants.lua` | Data version and shared limits |
 | `HighlightPlayers/Storage.lua` | PluginData load, normalization, migration, and save |
@@ -31,6 +33,7 @@ only be performed inside the game client.
 | `HighlightPlayers/Relationships.lua` | Player records and session indexes |
 | `HighlightPlayers/TargetTracker.lua` | Current-target event and state |
 | `HighlightPlayers/Indicator.lua` | On-screen indicator |
+| `HighlightPlayers/PlayerNoteWindow.lua` | Quick note editing for the current target |
 | `HighlightPlayers/*Window.lua` | Main window, player card, and label management |
 | `HighlightPlayers/Launcher.lua` | Floating launcher |
 | `HighlightPlayers/Commands.lua` | `/eh` commands |
@@ -42,10 +45,11 @@ only be performed inside the game client.
 initializes components in this order:
 
 1. Storage loads and normalizes PluginData.
-2. Labels and Relationships construct the data model.
-3. TargetTracker subscribes to target changes.
-4. Indicator and windows receive their dependencies through constructors.
-5. Launcher and Commands expose the user entry points.
+2. Localization resolves the saved or automatic language.
+3. Labels and Relationships construct the data model.
+4. TargetTracker subscribes to target changes.
+5. Indicator and windows receive their dependencies through constructors.
+6. Launcher and Commands expose the user entry points.
 
 `App:Stop()` removes subscriptions in reverse order and saves through Storage.
 A new component should have an explicit lifecycle and must not leave event
@@ -70,12 +74,34 @@ Never assume every field or type is valid: PluginData may come from an older
 version or may have been edited manually. Do not change a label's stable ID
 when changing its display name.
 
+Version 4 adds the `noteWindow` position and
+`settings.indicator.showNoteTooltip`. When version 3 is loaded, missing fields
+receive safe defaults and player records remain unchanged.
+
+Version 5 adds `settings.language` with `auto`, `en`, `fr`, `de`, or `ru`.
+Invalid values fall back to `auto`; all other persisted data remains unchanged.
+
+## Localization
+
+English is the fallback dictionary. Every other dictionary must contain the
+same keys and the same template parameters. Do not place user-facing strings
+directly in UI or model code; use
+`HighlightPlayers.Localization.Get(key, values)`.
+
+Windows subscribe with `Localization.AddListener` and unsubscribe in `Stop`.
+Changing language must not clear unsaved form input. User-facing text uses
+Verdana-family fonts that support diacritics and Cyrillic. Label names are user
+data and are not translated.
+
 ## Events and performance
 
 - Target reads happen on `TargetChanged`, not every frame.
 - Exact name matching uses a table keyed by the normalized name.
 - Lists use session indexes rebuilt after mutations.
 - Hidden UI must not take keyboard focus or intercept the mouse.
+- The indicator always participates in hit testing, so hover and short clicks
+  work in every mode. `/eh move` enables dragging, while `/eh lock` only
+  prevents position changes.
 - A background timer or `Update` handler requires a specific justification and
   in-client performance testing.
 

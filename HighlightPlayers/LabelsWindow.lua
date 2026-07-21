@@ -1,6 +1,7 @@
 HighlightPlayers = HighlightPlayers or {}
 
 HighlightPlayers.LabelsWindow = {}
+local L = HighlightPlayers.Localization
 
 local function createTextBox(parent, left, top, width)
     local box = Turbine.UI.Lotro.TextBox()
@@ -19,7 +20,7 @@ local function createLabel(parent, left, top, width, text)
     label:SetParent(parent)
     label:SetPosition(left, top)
     label:SetSize(width, 20)
-    label:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    label:SetFont(Turbine.UI.Lotro.Font.Verdana14)
     label:SetText(text)
     return label
 end
@@ -44,14 +45,20 @@ function HighlightPlayers.LabelsWindow.New(
 
     window:SetSize(width, height)
     window:SetPosition(left, top)
-    window:SetText("Manage labels")
+    window:SetText(L.Get("manage_labels"))
     window:SetZOrder(30)
     window:SetWantsKeyEvents(true)
     window:SetVisible(false)
 
     local selectedId = nil
 
-    createLabel(window, 20, 43, 185, "Labels - select to edit")
+    local labelsTitle = createLabel(
+        window,
+        20,
+        43,
+        185,
+        L.Get("labels_select")
+    )
     local list = Turbine.UI.ListBox()
     list:SetParent(window)
     list:SetPosition(20, 65)
@@ -64,10 +71,22 @@ function HighlightPlayers.LabelsWindow.New(
     listScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
     list:SetVerticalScrollBar(listScroll)
 
-    createLabel(window, 235, 43, 120, "Label name")
+    local labelNameTitle = createLabel(
+        window,
+        235,
+        43,
+        160,
+        L.Get("label_name")
+    )
     local nameBox = createTextBox(window, 235, 65, 300)
 
-    createLabel(window, 235, 98, 220, "Color components (0-255)")
+    local colorTitle = createLabel(
+        window,
+        235,
+        98,
+        300,
+        L.Get("color_components")
+    )
     local redCaption = createLabel(window, 235, 123, 15, "R")
     redCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     local redBox = createTextBox(window, 252, 120, 55)
@@ -82,7 +101,7 @@ function HighlightPlayers.LabelsWindow.New(
     preview:SetParent(window)
     preview:SetPosition(475, 120)
     preview:SetSize(60, 22)
-    preview:SetText("Preview")
+    preview:SetText(L.Get("preview"))
     preview:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     preview:SetForeColor(Turbine.UI.Color.Black)
     preview:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleCenter)
@@ -91,25 +110,25 @@ function HighlightPlayers.LabelsWindow.New(
     newButton:SetParent(window)
     newButton:SetPosition(235, 158)
     newButton:SetSize(90, 22)
-    newButton:SetText("New")
+    newButton:SetText(L.Get("new_button"))
 
     local saveButton = Turbine.UI.Lotro.Button()
     saveButton:SetParent(window)
     saveButton:SetPosition(340, 158)
     saveButton:SetSize(90, 22)
-    saveButton:SetText("Save")
+    saveButton:SetText(L.Get("save_button"))
 
     local deleteButton = Turbine.UI.Lotro.Button()
     deleteButton:SetParent(window)
     deleteButton:SetPosition(445, 158)
     deleteButton:SetSize(90, 22)
-    deleteButton:SetText("Delete")
+    deleteButton:SetText(L.Get("delete_button"))
 
     local modeLabel = Turbine.UI.Label()
     modeLabel:SetParent(window)
     modeLabel:SetPosition(235, 188)
     modeLabel:SetSize(300, 20)
-    modeLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
+    modeLabel:SetFont(Turbine.UI.Lotro.Font.Verdana14)
 
     local usageLabel = Turbine.UI.Label()
     usageLabel:SetParent(window)
@@ -118,11 +137,29 @@ function HighlightPlayers.LabelsWindow.New(
     usageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     usageLabel:SetMultiline(true)
 
-    createLabel(window, 235, 250, 280, "Automatic indicator limits")
-    local widthCaption = createLabel(window, 235, 275, 45, "Max W")
+    local limitsTitle = createLabel(
+        window,
+        235,
+        250,
+        300,
+        L.Get("automatic_limits")
+    )
+    local widthCaption = createLabel(
+        window,
+        235,
+        275,
+        45,
+        L.Get("max_width")
+    )
     widthCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     local widthBox = createTextBox(window, 280, 272, 55)
-    local heightCaption = createLabel(window, 345, 275, 45, "Max H")
+    local heightCaption = createLabel(
+        window,
+        345,
+        275,
+        45,
+        L.Get("max_height")
+    )
     heightCaption:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     local heightBox = createTextBox(window, 392, 272, 55)
     widthBox:SetText(tostring(indicatorSettings.maxWidth))
@@ -130,9 +167,9 @@ function HighlightPlayers.LabelsWindow.New(
 
     local applySizeButton = Turbine.UI.Lotro.Button()
     applySizeButton:SetParent(window)
-    applySizeButton:SetPosition(457, 272)
-    applySizeButton:SetSize(78, 22)
-    applySizeButton:SetText("Apply limits")
+    applySizeButton:SetPosition(447, 272)
+    applySizeButton:SetSize(88, 22)
+    applySizeButton:SetText(L.Get("apply_limits"))
 
     local sizeHint = Turbine.UI.Label()
     sizeHint:SetParent(window)
@@ -142,13 +179,20 @@ function HighlightPlayers.LabelsWindow.New(
     sizeHint:SetMultiline(true)
     sizeHint:SetForeColor(Turbine.UI.Color(0.70, 0.70, 0.70))
     sizeHint:SetText(
-        "The badge grows with its text up to these limits. Position: /eh move"
+        L.Get("indicator_hint")
     )
+
+    local showTooltipCheck = Turbine.UI.Lotro.CheckBox()
+    showTooltipCheck:SetParent(window)
+    showTooltipCheck:SetPosition(235, 337)
+    showTooltipCheck:SetSize(300, 20)
+    showTooltipCheck:SetText(L.Get("show_note_tooltip"))
+    showTooltipCheck:SetChecked(indicatorSettings.showNoteTooltip == true)
 
     local messageLabel = Turbine.UI.Label()
     messageLabel:SetParent(window)
-    messageLabel:SetPosition(20, 350)
-    messageLabel:SetSize(width - 40, 45)
+    messageLabel:SetPosition(20, 363)
+    messageLabel:SetSize(width - 40, 32)
     messageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     messageLabel:SetMultiline(true)
     messageLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
@@ -158,7 +202,7 @@ function HighlightPlayers.LabelsWindow.New(
     closeButton:SetParent(window)
     closeButton:SetPosition(width - 130, 407)
     closeButton:SetSize(110, 22)
-    closeButton:SetText("Close")
+    closeButton:SetText(L.Get("close_button"))
 
     local function showMessage(text, isError)
         messageLabel:SetText(text or "")
@@ -184,7 +228,7 @@ function HighlightPlayers.LabelsWindow.New(
 
     local function updateUsageState(label)
         if label == nil then
-            usageLabel:SetText("Enter a name and RGB values, then click Save.")
+            usageLabel:SetText(L.Get("label_create_hint"))
             deleteButton:SetEnabled(false)
             return
         end
@@ -193,18 +237,11 @@ function HighlightPlayers.LabelsWindow.New(
         local isLast = table.getn(labels:GetAll()) <= 1
 
         if count > 0 then
-            usageLabel:SetText(
-                "Assigned players: " .. tostring(count) ..
-                ". Reassign them before deleting this label."
-            )
+            usageLabel:SetText(L.Get("assigned_reassign", { count = count }))
         elseif isLast then
-            usageLabel:SetText(
-                "Assigned players: 0. At least one label must remain."
-            )
+            usageLabel:SetText(L.Get("assigned_last"))
         else
-            usageLabel:SetText(
-                "Assigned players: 0. This label can be deleted."
-            )
+            usageLabel:SetText(L.Get("assigned_can_delete"))
         end
 
         deleteButton:SetEnabled(count == 0 and not isLast)
@@ -214,13 +251,13 @@ function HighlightPlayers.LabelsWindow.New(
         selectedId = label ~= nil and label.id or nil
 
         if label == nil then
-            modeLabel:SetText("Creating a new label")
+            modeLabel:SetText(L.Get("creating_label"))
             nameBox:SetText("")
             redBox:SetText("180")
             greenBox:SetText("180")
             blueBox:SetText("180")
         else
-            modeLabel:SetText("Editing: " .. label.name)
+            modeLabel:SetText(L.Get("editing_label", { label = label.name }))
             nameBox:SetText(label.name)
             redBox:SetText(tostring(label.red))
             greenBox:SetText(tostring(label.green))
@@ -300,8 +337,8 @@ function HighlightPlayers.LabelsWindow.New(
         loadLabel(result)
         window.Refresh()
         showMessage(
-            persisted and "Label saved." or
-            "Saved in memory; persistence failed.",
+            persisted and L.Get("label_saved") or
+            L.Get("saved_memory_failed"),
             not persisted
         )
     end
@@ -320,8 +357,8 @@ function HighlightPlayers.LabelsWindow.New(
         loadLabel(labels:GetFirst())
         window.Refresh()
         showMessage(
-            persisted and "Label deleted." or
-            "Deleted in memory; persistence failed.",
+            persisted and L.Get("label_deleted") or
+            L.Get("deleted_memory_failed"),
             not persisted
         )
     end
@@ -335,7 +372,7 @@ function HighlightPlayers.LabelsWindow.New(
             newWidth < limits.MinWidth or newWidth > limits.MaxWidth or
             newHeight < limits.MinHeight or newHeight > limits.MaxHeight then
             showMessage(
-                "Maximum width must be 60-300 and height 20-80.",
+                L.Get("invalid_limits"),
                 true
             )
             return
@@ -346,12 +383,16 @@ function HighlightPlayers.LabelsWindow.New(
         widthBox:SetText(tostring(newWidth))
         heightBox:SetText(tostring(newHeight))
         indicator.ApplyLimits(newWidth, newHeight)
-        showMessage("Automatic size limits saved.", false)
+        showMessage(L.Get("limits_saved"), false)
     end
 
     redBox.TextChanged = updatePreview
     greenBox.TextChanged = updatePreview
     blueBox.TextChanged = updatePreview
+    showTooltipCheck.CheckedChanged = function()
+        indicator.SetShowNoteTooltip(showTooltipCheck:IsChecked())
+        showMessage(L.Get("tooltip_setting_saved"), false)
+    end
 
     window.Open = function()
         local newLeft, newTop = HighlightPlayers.Util.ClampPosition(
@@ -363,6 +404,9 @@ function HighlightPlayers.LabelsWindow.New(
         window:SetPosition(newLeft, newTop)
         widthBox:SetText(tostring(indicatorSettings.maxWidth))
         heightBox:SetText(tostring(indicatorSettings.maxHeight))
+        showTooltipCheck:SetChecked(
+            indicatorSettings.showNoteTooltip == true
+        )
 
         loadLabel(labels:GetById(selectedId) or labels:GetFirst())
 
@@ -414,15 +458,49 @@ function HighlightPlayers.LabelsWindow.New(
         end
     end)
 
+    local function applyLocale()
+        window:SetText(L.Get("manage_labels"))
+        labelsTitle:SetText(L.Get("labels_select"))
+        labelNameTitle:SetText(L.Get("label_name"))
+        colorTitle:SetText(L.Get("color_components"))
+        preview:SetText(L.Get("preview"))
+        newButton:SetText(L.Get("new_button"))
+        saveButton:SetText(L.Get("save_button"))
+        deleteButton:SetText(L.Get("delete_button"))
+        limitsTitle:SetText(L.Get("automatic_limits"))
+        widthCaption:SetText(L.Get("max_width"))
+        heightCaption:SetText(L.Get("max_height"))
+        applySizeButton:SetText(L.Get("apply_limits"))
+        sizeHint:SetText(L.Get("indicator_hint"))
+        showTooltipCheck:SetText(L.Get("show_note_tooltip"))
+        closeButton:SetText(L.Get("close_button"))
+        local selected = labels:GetById(selectedId)
+        if selected == nil then
+            modeLabel:SetText(L.Get("creating_label"))
+            updateUsageState(nil)
+        else
+            modeLabel:SetText(L.Get("editing_label", {
+                label = selected.name
+            }))
+            updateUsageState(selected)
+        end
+        showMessage(nil, false)
+        window.Refresh()
+    end
+
+    local localeListener = L.AddListener(applyLocale)
+
     window.Stop = function()
         labels:RemoveListener(labelListener)
         relationships:RemoveListener(relationshipListener)
+        L.RemoveListener(localeListener)
         settings.left = window:GetLeft()
         settings.top = window:GetTop()
         window:SetVisible(false)
     end
 
     loadLabel(labels:GetFirst())
+    applyLocale()
     window.Refresh()
     return window
 end

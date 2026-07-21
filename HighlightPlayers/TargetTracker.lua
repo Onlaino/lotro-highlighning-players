@@ -26,7 +26,7 @@ local function getAlignment(target)
     )
 
     if not succeeded then
-        return "unavailable"
+        return HighlightPlayers.Localization.Get("alignment_unavailable")
     end
 
     if alignment == Turbine.Gameplay.Alignment.MonsterPlayer then
@@ -142,23 +142,30 @@ function HighlightPlayers.TargetTracker:PrintSnapshot()
     local snapshot = self:Refresh()
 
     if snapshot.state == "empty" then
-        HighlightPlayers.Util.WriteInfo("Target is empty.")
+        HighlightPlayers.Util.WriteInfo(
+            HighlightPlayers.Localization.Get("target_empty")
+        )
         return
     end
 
     if snapshot.state == "error" then
         HighlightPlayers.Util.WriteError(
-            "Target read failed: " .. tostring(snapshot.error)
+            HighlightPlayers.Localization.Get("target_read_failed", {
+                error = snapshot.error
+            })
         )
         return
     end
 
-    HighlightPlayers.Util.WriteInfo(
-        "Target: " .. snapshot.name ..
-        " | type=" .. snapshot.entityType ..
-        " | alignment=" .. snapshot.alignment ..
-        " | local=" .. tostring(snapshot.isLocalPlayer)
-    )
+    HighlightPlayers.Util.WriteInfo(HighlightPlayers.Localization.Get(
+        "target_diagnostic",
+        {
+            name = snapshot.name,
+            type = snapshot.entityType,
+            alignment = snapshot.alignment,
+            localPlayer = tostring(snapshot.isLocalPlayer)
+        }
+    ))
 end
 
 function HighlightPlayers.TargetTracker:Start()
@@ -172,7 +179,9 @@ function HighlightPlayers.TargetTracker:Start()
 
     if not succeeded or playerOrError == nil then
         HighlightPlayers.Util.WriteError(
-            "Could not access LocalPlayer: " .. tostring(playerOrError)
+            HighlightPlayers.Localization.Get("local_player_failed", {
+                error = playerOrError
+            })
         )
         return false
     end
