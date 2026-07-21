@@ -17,6 +17,8 @@ function HighlightPlayers.App.New(pluginInstance)
         mainWindow = nil,
         launcher = nil,
         commands = nil,
+        optionsPanel = nil,
+        optionsLocaleListener = nil,
         started = false
     }
 
@@ -31,6 +33,7 @@ function HighlightPlayers.App:Start()
 
     self.storage = HighlightPlayers.Storage.New()
     self.storage:Load()
+    HighlightPlayers.Localization.Initialize(self.storage)
 
     self.labels = HighlightPlayers.Labels.New(self.storage)
     self.relationships = HighlightPlayers.Relationships.New(
@@ -90,8 +93,9 @@ function HighlightPlayers.App:Start()
 
     self.started = true
     HighlightPlayers.Util.WriteInfo(
-        "Enemy Highlight v" .. self.plugin:GetVersion() ..
-        " loaded. Click the launcher icon or use /eh to open."
+        HighlightPlayers.Localization.Get("app_loaded", {
+            version = self.plugin:GetVersion()
+        })
     )
 end
 
@@ -101,6 +105,12 @@ function HighlightPlayers.App:Stop()
     end
 
     self.commands:Stop()
+    if self.optionsLocaleListener ~= nil then
+        HighlightPlayers.Localization.RemoveListener(
+            self.optionsLocaleListener
+        )
+        self.optionsLocaleListener = nil
+    end
     self.launcher.Stop()
     self.mainWindow.Stop()
     self.cardWindow.Stop()
@@ -113,14 +123,17 @@ function HighlightPlayers.App:Stop()
 end
 
 function HighlightPlayers.App:GetOptionsPanel()
+    if self.optionsPanel ~= nil then
+        return self.optionsPanel
+    end
+
     local panel = Turbine.UI.Control()
-    panel:SetHeight(85)
+    panel:SetHeight(117)
 
     local openButton = Turbine.UI.Lotro.Button()
     openButton:SetParent(panel)
     openButton:SetPosition(15, 15)
     openButton:SetSize(180, 22)
-    openButton:SetText("Open Enemy Highlight")
     openButton.Click = function()
         self.mainWindow.Open()
     end
@@ -129,10 +142,45 @@ function HighlightPlayers.App:GetOptionsPanel()
     labelsButton:SetParent(panel)
     labelsButton:SetPosition(15, 47)
     labelsButton:SetSize(180, 22)
-    labelsButton:SetText("Manage labels")
     labelsButton.Click = function()
         self.labelsWindow.Open()
     end
+
+    local languageButton = Turbine.UI.Lotro.Button()
+    languageButton:SetParent(panel)
+    languageButton:SetPosition(15, 79)
+    languageButton:SetSize(250, 22)
+    languageButton.Click = function()
+        local succeeded, languageOrError =
+            HighlightPlayers.Localization.CycleLanguage()
+        if succeeded then
+            HighlightPlayers.Util.WriteInfo(
+                HighlightPlayers.Localization.Get("language_changed", {
+                    language = languageOrError
+                })
+            )
+        else
+            HighlightPlayers.Util.WriteError(languageOrError)
+        end
+    end
+
+    local function applyLocale()
+        openButton:SetText(HighlightPlayers.Localization.Get("open_plugin"))
+        labelsButton:SetText(
+            HighlightPlayers.Localization.Get("manage_labels")
+        )
+        languageButton:SetText(
+            HighlightPlayers.Localization.Get("language_button", {
+                language = HighlightPlayers.Localization.GetSelectionName()
+            })
+        )
+    end
+
+    self.optionsLocaleListener = HighlightPlayers.Localization.AddListener(
+        applyLocale
+    )
+    self.optionsPanel = panel
+    applyLocale()
 
     return panel
 end

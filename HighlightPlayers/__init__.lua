@@ -1,3 +1,8 @@
+import "HighlightPlayers.Locale.en"
+import "HighlightPlayers.Locale.fr"
+import "HighlightPlayers.Locale.de"
+import "HighlightPlayers.Locale.ru"
+import "HighlightPlayers.Localization"
 import "HighlightPlayers.Constants"
 import "HighlightPlayers.Util"
 import "HighlightPlayers.Event"

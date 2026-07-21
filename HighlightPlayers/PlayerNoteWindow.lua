@@ -1,6 +1,7 @@
 HighlightPlayers = HighlightPlayers or {}
 
 HighlightPlayers.PlayerNoteWindow = {}
+local L = HighlightPlayers.Localization
 
 function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
     local settings = storage:GetData().settings.noteWindow
@@ -16,7 +17,7 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
 
     window:SetSize(width, height)
     window:SetPosition(left, top)
-    window:SetText("Player note")
+    window:SetText(L.Get("player_note"))
     window:SetZOrder(25)
     window:SetWantsKeyEvents(true)
     window:SetVisible(false)
@@ -27,7 +28,7 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
     playerName:SetParent(window)
     playerName:SetPosition(20, 43)
     playerName:SetSize(width - 40, 24)
-    playerName:SetFont(Turbine.UI.Lotro.Font.TrajanPro18)
+    playerName:SetFont(Turbine.UI.Lotro.Font.Verdana16)
 
     local labelPanel = Turbine.UI.Control()
     labelPanel:SetParent(window)
@@ -55,8 +56,8 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
     noteLabel:SetParent(window)
     noteLabel:SetPosition(20, 111)
     noteLabel:SetSize(100, 20)
-    noteLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    noteLabel:SetText("Note")
+    noteLabel:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    noteLabel:SetText(L.Get("note"))
 
     local noteBox = Turbine.UI.Lotro.TextBox()
     noteBox:SetParent(window)
@@ -85,14 +86,14 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
     local saveButton = Turbine.UI.Lotro.Button()
     saveButton:SetParent(window)
     saveButton:SetPosition(20, 286)
-    saveButton:SetSize(120, 22)
-    saveButton:SetText("Save note")
+    saveButton:SetSize(160, 22)
+    saveButton:SetText(L.Get("save_note"))
 
     local cancelButton = Turbine.UI.Lotro.Button()
     cancelButton:SetParent(window)
     cancelButton:SetPosition(width - 140, 286)
     cancelButton:SetSize(120, 22)
-    cancelButton:SetText("Cancel")
+    cancelButton:SetText(L.Get("cancel"))
 
     local function showMessage(text, isError)
         messageLabel:SetText(text or "")
@@ -124,7 +125,8 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
         local label = labels:GetById(record.labelId)
         playerName:SetText(record.name)
         labelName:SetText(
-            label ~= nil and ("Label: " .. label.name) or "Label unavailable"
+            label ~= nil and L.Get("tooltip_label", { label = label.name }) or
+                L.Get("label_unavailable")
         )
         labelAccent:SetBackColor(labels:GetColor(label))
         return true
@@ -143,7 +145,7 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
 
         if record == nil then
             currentKey = nil
-            HighlightPlayers.Util.WriteError("Player was not found.")
+            HighlightPlayers.Util.WriteError(L.Get("player_not_found"))
             return
         end
 
@@ -167,7 +169,7 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
             relationships:GetByKey(currentKey) or nil
 
         if record == nil then
-            showMessage("Player was not found.", true)
+            showMessage(L.Get("player_not_found"), true)
             return
         end
 
@@ -184,7 +186,7 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
         end
 
         if not persisted then
-            showMessage("Saved in memory, but persistence failed.", true)
+            showMessage(L.Get("saved_memory_but_failed"), true)
             return
         end
 
@@ -223,12 +225,27 @@ function HighlightPlayers.PlayerNoteWindow.New(storage, relationships, labels)
         end
     end)
 
+    local function applyLocale()
+        window:SetText(L.Get("player_note"))
+        noteLabel:SetText(L.Get("note"))
+        saveButton:SetText(L.Get("save_note"))
+        cancelButton:SetText(L.Get("cancel"))
+        if window:IsVisible() then
+            loadCurrentRecord()
+        end
+        showMessage(nil, false)
+    end
+
+    local localeListener = L.AddListener(applyLocale)
+
     window.Stop = function()
         relationships:RemoveListener(relationshipListener)
         labels:RemoveListener(labelListener)
+        L.RemoveListener(localeListener)
         savePosition()
         window:SetVisible(false)
     end
 
+    applyLocale()
     return window
 end

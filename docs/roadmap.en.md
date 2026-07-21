@@ -2,7 +2,7 @@
 
 [Русский](roadmap.md) | **English** · [Documentation index](README.md)
 
-This document describes development directions after `v0.1.0`. Priorities may
+This document describes development directions after `v0.2.0`. Priorities may
 change after in-client testing and user feedback. A milestone number is not a
 release-date promise: work may be split or moved when a prototype reveals an
 API limitation.
@@ -12,7 +12,7 @@ API limitation.
 | Milestone | Status | Primary goal |
 |---|---|---|
 | `v0.1` | Released | Custom labels, notes, search, and target indicator |
-| `v0.2` | Planned | Localization and faster access to target information |
+| `v0.2` | Released | Localization and faster access to target information |
 | `v0.3` | Planned | Import/export, notifications, and session history |
 | `v0.4` | Research | Aliases, profiles, and an extended player model |
 
@@ -45,25 +45,27 @@ People/Monster Player classifier.
 
 ## v0.2 — information access and localization
 
-Goal: support Russian and English users and reduce the number of steps needed
-to work with the current target.
+Goal: support four interface languages and reduce the number of steps needed to
+work with the current target.
 
-### RU/EN localization
+### EN/FR/DE/RU localization
 
-- move user-facing strings into locale tables;
-- add `Locale/en.lua` and `Locale/ru.lua`;
-- detect the client language through `Turbine.Engine.GetLanguage()`;
-- provide `Automatic / English / Русский` selection;
-- use fonts that support Cyrillic;
-- localize windows, buttons, tooltips, messages, and `/eh help`.
+Status: released in `v0.2.0`.
 
-Completion requires a language switch without deleting PluginData, no mixed
-languages, usable layouts for longer strings, and unchanged Latin-name
+- user-facing strings are stored in locale tables;
+- `Locale/en.lua`, `fr.lua`, `de.lua`, and `ru.lua` are available;
+- `Automatic` detects the client through `Turbine.Engine.GetLanguage()`;
+- manual selection is available in plugin options and `/eh language`;
+- windows, buttons, tooltips, messages, and `/eh help` update without reload;
+- user-facing text uses fonts with Cyrillic support.
+
+Completion requires in-client verification without deleting PluginData, no
+mixed languages, usable layouts for longer strings, and unchanged Latin-name
 matching.
 
 ### Notes on the target indicator
 
-Status: implemented, pending manual verification in LOTRO.
+Status: released in `v0.2.0`.
 
 The label remains visible. In every mode, hovering shows the full player name,
 label, and non-empty note. A short click without dragging opens a dedicated
@@ -72,7 +74,12 @@ is configured in `Manage labels`. `/eh move` enables dragging, while `/eh lock`
 only fixes the indicator position. A short second note line remains a separate
 follow-up after the primary interaction is verified.
 
-### Current-target commands
+### Candidates for `v0.2.x`
+
+The following improvements were not included in `v0.2.0`. They may ship in a
+separate patch or move to the next milestone after prototyping.
+
+#### Current-target commands
 
 Planned commands:
 
@@ -87,7 +94,7 @@ They must reject a missing or unnamed target, preserve notes when changing a
 label, support multiword labels and notes, and report destructive results
 clearly.
 
-### Small UI settings
+#### Small UI settings
 
 - hide and restore the floating launcher;
 - indicator opacity;

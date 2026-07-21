@@ -100,20 +100,20 @@ function HighlightPlayers.Labels:ValidateName(nameValue, excludedId)
     local name = HighlightPlayers.Util.Trim(nameValue)
 
     if name == "" then
-        return false, "Label name is required."
+        return false, HighlightPlayers.Localization.Get("label_name_required")
     end
 
     if string.len(name) > HighlightPlayers.Constants.LabelNameMaxLength then
-        return false, "Label name is too long."
+        return false, HighlightPlayers.Localization.Get("label_name_too_long")
     end
 
     if string.find(name, "[%c]") ~= nil then
-        return false, "Label name contains invalid characters."
+        return false, HighlightPlayers.Localization.Get("label_name_invalid")
     end
 
     local existing = self:FindByName(name)
     if existing ~= nil and existing.id ~= excludedId then
-        return false, "A label with this name already exists."
+        return false, HighlightPlayers.Localization.Get("label_name_exists")
     end
 
     return true, name
@@ -143,7 +143,7 @@ function HighlightPlayers.Labels:SaveLabel(id, nameValue, red, green, blue)
     local parsedBlue = parseColorComponent(blue)
 
     if parsedRed == nil or parsedGreen == nil or parsedBlue == nil then
-        return false, "RGB values must be whole numbers from 0 to 255.", false
+        return false, HighlightPlayers.Localization.Get("rgb_invalid"), false
     end
 
     local label = nil
@@ -152,7 +152,8 @@ function HighlightPlayers.Labels:SaveLabel(id, nameValue, red, green, blue)
     if id ~= nil then
         label = self:GetById(id)
         if label == nil then
-            return false, "Label was not found.", false
+            return false, HighlightPlayers.Localization.Get("label_not_found"),
+                false
         end
     else
         label = { id = self:GenerateId() }
@@ -172,7 +173,8 @@ end
 
 function HighlightPlayers.Labels:Delete(id)
     if table.getn(self.labels) <= 1 then
-        return false, "The last label cannot be deleted.", false
+        return false, HighlightPlayers.Localization.Get("last_label_delete"),
+            false
     end
 
     local usageCount = 0
@@ -181,10 +183,9 @@ function HighlightPlayers.Labels:Delete(id)
     end
 
     if usageCount > 0 then
-        return false,
-            "Reassign or delete " .. tostring(usageCount) ..
-            " player(s) using this label first.",
-            false
+        return false, HighlightPlayers.Localization.Get("label_in_use", {
+            count = usageCount
+        }), false
     end
 
     for index = 1, table.getn(self.labels) do
@@ -196,5 +197,5 @@ function HighlightPlayers.Labels:Delete(id)
         end
     end
 
-    return false, "Label was not found.", false
+    return false, HighlightPlayers.Localization.Get("label_not_found"), false
 end

@@ -9,17 +9,23 @@ function HighlightPlayers.StatusSelector.New(
     labels,
     onChanged,
     width,
-    height
+    height,
+    layout
 )
     local selector = {
         labels = labels,
         labelId = nil,
         rows = {},
-        listener = nil
+        listener = nil,
+        localeListener = nil
     }
 
     local totalWidth = width or 320
     local totalHeight = height or 96
+    local columns = layout ~= nil and layout.columns or 1
+    local visibleRows = layout ~= nil and layout.visibleRows or nil
+    local rowHeight = 30
+    local columnGap = columns > 1 and 6 or 0
 
     local list = Turbine.UI.ListBox()
     list:SetParent(parent)
@@ -38,7 +44,9 @@ function HighlightPlayers.StatusSelector.New(
             local selected = id == self.labelId
             row.button:SetEnabled(not selected)
             row.button:SetText(
-                selected and row.name .. "  [selected]" or row.name
+                selected and row.name .. "  " ..
+                    HighlightPlayers.Localization.Get("selected_marker") or
+                    row.name
             )
         end
     end
@@ -48,14 +56,39 @@ function HighlightPlayers.StatusSelector.New(
         self.rows = {}
 
         local all = self.labels:GetAll()
+        local rowCount = math.ceil(table.getn(all) / columns)
+        local hasOverflow = visibleRows ~= nil and rowCount > visibleRows
+
+        if visibleRows ~= nil then
+            scroll:SetVisible(hasOverflow)
+            list:SetSize(
+                hasOverflow and totalWidth - 17 or totalWidth,
+                totalHeight
+            )
+        end
+
         if self.labels:GetById(self.labelId) == nil then
             self.labelId = all[1] ~= nil and all[1].id or nil
         end
 
-        for _, label in ipairs(all) do
+        local visualRow = nil
+        local itemWidth = math.floor(
+            (list:GetWidth() - columnGap * (columns - 1)) / columns
+        )
+
+        for index, label in ipairs(all) do
+            local column = math.mod(index - 1, columns)
+            if column == 0 then
+                visualRow = Turbine.UI.Control()
+                visualRow:SetSize(list:GetWidth(), rowHeight)
+                list:AddItem(visualRow)
+            end
+
             local currentId = label.id
             local item = Turbine.UI.Control()
-            item:SetSize(list:GetWidth(), 30)
+            item:SetParent(visualRow)
+            item:SetPosition(column * (itemWidth + columnGap), 0)
+            item:SetSize(itemWidth, rowHeight)
 
             local button = Turbine.UI.Lotro.Button()
             button:SetParent(item)
@@ -83,7 +116,6 @@ function HighlightPlayers.StatusSelector.New(
                 button = button,
                 name = label.name
             }
-            list:AddItem(item)
         end
 
         self:UpdateSelection()
@@ -113,11 +145,20 @@ function HighlightPlayers.StatusSelector.New(
             self.labels:RemoveListener(self.listener)
             self.listener = nil
         end
+        if self.localeListener ~= nil then
+            HighlightPlayers.Localization.RemoveListener(self.localeListener)
+            self.localeListener = nil
+        end
     end
 
     selector.listener = labels:AddListener(function()
         selector:Rebuild()
     end)
+    selector.localeListener = HighlightPlayers.Localization.AddListener(
+        function()
+            selector:UpdateSelection()
+        end
+    )
 
     selector:Rebuild()
     return selector

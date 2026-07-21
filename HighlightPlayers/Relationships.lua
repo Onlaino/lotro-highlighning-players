@@ -174,7 +174,9 @@ function HighlightPlayers.Relationships:SavePlayer(
     end
 
     if self.labels:GetById(labelId) == nil then
-        return false, "Choose an existing label.", false
+        return false,
+            HighlightPlayers.Localization.Get("choose_existing_label"),
+            false
     end
 
     local name = nameOrError
@@ -188,7 +190,8 @@ function HighlightPlayers.Relationships:SavePlayer(
     if normalizedOriginalKey ~= nil and
         normalizedOriginalKey ~= key and
         self.players[key] ~= nil then
-        return false, "A player with this name already exists.", false
+        return false, HighlightPlayers.Localization.Get("player_name_exists"),
+            false
     end
 
     local existing = self.players[key]
@@ -229,7 +232,8 @@ function HighlightPlayers.Relationships:Delete(keyValue)
     local record = self.players[key]
 
     if record == nil then
-        return false, "Player was not found.", false
+        return false, HighlightPlayers.Localization.Get("player_not_found"),
+            false
     end
 
     self.players[key] = nil

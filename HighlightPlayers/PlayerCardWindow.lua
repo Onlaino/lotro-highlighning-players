@@ -1,6 +1,7 @@
 HighlightPlayers = HighlightPlayers or {}
 
 HighlightPlayers.PlayerCardWindow = {}
+local L = HighlightPlayers.Localization
 
 function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     local settings = storage:GetData().settings.cardWindow
@@ -16,19 +17,20 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
 
     window:SetSize(width, height)
     window:SetPosition(left, top)
-    window:SetText("Player card")
+    window:SetText(L.Get("player_card"))
     window:SetZOrder(20)
     window:SetWantsKeyEvents(true)
     window:SetVisible(false)
 
     local originalKey = nil
+    local isNew = false
 
     local nameLabel = Turbine.UI.Label()
     nameLabel:SetParent(window)
     nameLabel:SetPosition(20, 45)
     nameLabel:SetSize(100, 20)
-    nameLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    nameLabel:SetText("Player name")
+    nameLabel:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    nameLabel:SetText(L.Get("player_name"))
 
     local nameBox = Turbine.UI.Lotro.TextBox()
     nameBox:SetParent(window)
@@ -43,8 +45,8 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     labelTitle:SetParent(window)
     labelTitle:SetPosition(20, 98)
     labelTitle:SetSize(width - 40, 20)
-    labelTitle:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    labelTitle:SetText("Choose one label")
+    labelTitle:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    labelTitle:SetText(L.Get("choose_one_label"))
 
     local labelSelector = HighlightPlayers.StatusSelector.New(
         window,
@@ -60,8 +62,8 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     noteLabel:SetParent(window)
     noteLabel:SetPosition(20, 230)
     noteLabel:SetSize(100, 20)
-    noteLabel:SetFont(Turbine.UI.Lotro.Font.TrajanPro15)
-    noteLabel:SetText("Note")
+    noteLabel:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    noteLabel:SetText(L.Get("note"))
 
     local noteBox = Turbine.UI.Lotro.TextBox()
     noteBox:SetParent(window)
@@ -91,19 +93,19 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     saveButton:SetParent(window)
     saveButton:SetPosition(20, 426)
     saveButton:SetSize(110, 22)
-    saveButton:SetText("Save")
+    saveButton:SetText(L.Get("save_button"))
 
     local deleteButton = Turbine.UI.Lotro.Button()
     deleteButton:SetParent(window)
     deleteButton:SetPosition(160, 426)
     deleteButton:SetSize(110, 22)
-    deleteButton:SetText("Delete")
+    deleteButton:SetText(L.Get("delete_button"))
 
     local cancelButton = Turbine.UI.Lotro.Button()
     cancelButton:SetParent(window)
     cancelButton:SetPosition(300, 426)
     cancelButton:SetSize(110, 22)
-    cancelButton:SetText("Cancel")
+    cancelButton:SetText(L.Get("cancel"))
 
     local function showMessage(text, isError)
         messageLabel:SetText(text or "")
@@ -138,7 +140,8 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
 
         local initialLabel = labels:GetById(labelId) or labels:GetFirst()
         originalKey = nil
-        window:SetText("Add player")
+        isNew = true
+        window:SetText(L.Get("add_player"))
         nameBox:SetText(prefilledName or "")
         noteBox:SetText("")
         if initialLabel ~= nil then
@@ -156,12 +159,13 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         local record = relationships:GetByKey(normalizedKey)
 
         if record == nil then
-            HighlightPlayers.Util.WriteError("Player was not found.")
+            HighlightPlayers.Util.WriteError(L.Get("player_not_found"))
             return
         end
 
         originalKey = normalizedKey
-        window:SetText("Player card")
+        isNew = false
+        window:SetText(L.Get("player_card"))
         nameBox:SetText(record.name)
         noteBox:SetText(record.note or "")
         labelSelector:SetLabelId(record.labelId, false)
@@ -186,7 +190,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         end
 
         if not persisted then
-            showMessage("Saved in memory, but persistence failed.", true)
+            showMessage(L.Get("saved_memory_but_failed"), true)
             return
         end
 
@@ -209,7 +213,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         end
 
         if not persisted then
-            showMessage("Deleted in memory, but persistence failed.", true)
+            showMessage(L.Get("deleted_memory_but_failed"), true)
             return
         end
 
@@ -236,11 +240,26 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         settings.top = window:GetTop()
     end
 
+    local function applyLocale()
+        window:SetText(L.Get(isNew and "add_player" or "player_card"))
+        nameLabel:SetText(L.Get("player_name"))
+        labelTitle:SetText(L.Get("choose_one_label"))
+        noteLabel:SetText(L.Get("note"))
+        saveButton:SetText(L.Get("save_button"))
+        deleteButton:SetText(L.Get("delete_button"))
+        cancelButton:SetText(L.Get("cancel"))
+        showMessage(nil, false)
+    end
+
+    local localeListener = L.AddListener(applyLocale)
+
     window.Stop = function()
         labelSelector:Stop()
+        L.RemoveListener(localeListener)
         savePosition()
         window:SetVisible(false)
     end
 
+    applyLocale()
     return window
 end

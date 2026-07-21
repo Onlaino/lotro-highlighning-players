@@ -278,7 +278,9 @@ function HighlightPlayers.Indicator.New(
 
         if settings.showNoteTooltip == true and label ~= nil and note ~= "" then
             tooltipValue = record.name .. "\n" ..
-                "Label: " .. label.name .. "\n\n" .. note
+                HighlightPlayers.Localization.Get("tooltip_label", {
+                    label = label.name
+                }) .. "\n\n" .. note
             tooltipLabel:SetText(tooltipValue)
             if hovering then
                 showTooltip()
@@ -300,7 +302,9 @@ function HighlightPlayers.Indicator.New(
         if label ~= nil then
             local color = labels:GetColor(label)
             local text = moveMode and
-                (label.name .. "  [click / drag]") or label.name
+                (label.name .. "  " ..
+                    HighlightPlayers.Localization.Get("indicator_marker")) or
+                label.name
             accent:SetBackColor(color)
             badge:SetText(text)
             applyTextDimensions(text)
@@ -316,8 +320,11 @@ function HighlightPlayers.Indicator.New(
             local moveColor = Turbine.UI.Color(0.82, 0.61, 0.20)
             accent:SetBackColor(moveColor)
             frame:SetBackColor(moveColor)
-            badge:SetText("Drag indicator")
-            applyTextDimensions("Drag indicator")
+            local dragText = HighlightPlayers.Localization.Get(
+                "drag_indicator"
+            )
+            badge:SetText(dragText)
+            applyTextDimensions(dragText)
             window:SetVisible(true)
         else
             tooltipWindow:SetVisible(false)
@@ -405,12 +412,11 @@ function HighlightPlayers.Indicator.New(
 
         if moveMode then
             HighlightPlayers.Util.WriteInfo(
-                "Indicator interactive. Click for note or drag; " ..
-                "use /eh lock when done."
+                HighlightPlayers.Localization.Get("indicator_interactive")
             )
         else
             HighlightPlayers.Util.WriteInfo(
-                "Indicator position locked. Click still opens the note."
+                HighlightPlayers.Localization.Get("indicator_locked")
             )
         end
     end
@@ -459,10 +465,15 @@ function HighlightPlayers.Indicator.New(
         update()
     end)
 
+    local localeListener = HighlightPlayers.Localization.AddListener(function()
+        update()
+    end)
+
     window.Stop = function()
         targetTracker:RemoveListener(targetListener)
         relationships:RemoveListener(relationshipListener)
         labels:RemoveListener(labelsListener)
+        HighlightPlayers.Localization.RemoveListener(localeListener)
         settings.left = window:GetLeft()
         settings.top = window:GetTop()
         settings.locked = not moveMode

@@ -38,6 +38,21 @@ double `HighlightPlayers\HighlightPlayers` directory.
 4. If needed, click the name in the list and add a note in the player card.
 5. Select that character again to see the label next to the target frame.
 
+## Interface language
+
+English, French, German, and Russian are available. `Automatic` uses the LOTRO
+client language and falls back to English for an unknown language.
+
+Change the language in either way:
+
+- cycle the `Language` button in the LOTRO plugin options;
+- run `/eh language <auto|en|fr|de|ru>`.
+
+Open windows, tooltips, and messages update immediately. The selection is
+stored in PluginData and survives reloads. User-defined label names, including
+the default `Friend`, `Neutral`, and `Enemy` labels, are saved data and are not
+translated automatically.
+
 ## Main window
 
 The top area contains `Player name`, `Use target`, the label selector,
@@ -113,6 +128,7 @@ to move it. The position is saved when you release the button.
 | `/eh add <nickname> <label name>` | Assign the specified label immediately |
 | `/eh info <nickname>` | Print the saved note to chat |
 | `/eh probe` | Print current-target diagnostics |
+| `/eh language <auto\|en\|fr\|de\|ru>` | Change the interface language |
 | `/eh help` | Show a short command reference |
 
 The label name passed to `/eh add` may contain spaces. Adding an existing name

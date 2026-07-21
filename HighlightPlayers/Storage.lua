@@ -21,6 +21,7 @@ local function defaultData()
         nextLabelId = 1,
         players = {},
         settings = {
+            language = "auto",
             mainWindow = {
                 left = 180,
                 top = 160
@@ -121,6 +122,13 @@ local function normalizeLoadedData(loaded)
         loaded.settings = {}
     end
 
+    local language = tostring(loaded.settings.language or "auto")
+    if language ~= "auto" and language ~= "en" and language ~= "fr" and
+        language ~= "de" and language ~= "ru" then
+        language = "auto"
+    end
+    loaded.settings.language = language
+
     normalizeLabels(loaded, defaults)
     ensurePosition(loaded.settings, "mainWindow", defaults.settings.mainWindow)
     ensurePosition(loaded.settings, "cardWindow", defaults.settings.cardWindow)
@@ -183,7 +191,9 @@ function HighlightPlayers.Storage:Load()
     if not succeeded then
         self.lastError = tostring(loadedOrError)
         HighlightPlayers.Util.WriteError(
-            "Could not load saved data: " .. self.lastError
+            HighlightPlayers.Localization.Get("load_failed", {
+                error = self.lastError
+            })
         )
         self.data = defaultData()
         return false
@@ -208,7 +218,9 @@ function HighlightPlayers.Storage:Save()
     if not succeeded then
         self.lastError = tostring(saveError)
         HighlightPlayers.Util.WriteError(
-            "Could not save data: " .. self.lastError
+            HighlightPlayers.Localization.Get("save_failed", {
+                error = self.lastError
+            })
         )
         return false
     end
