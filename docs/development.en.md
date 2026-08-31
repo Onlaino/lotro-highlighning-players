@@ -81,6 +81,12 @@ receive safe defaults and player records remain unchanged.
 Version 5 adds `settings.language` with `auto`, `en`, `fr`, `de`, or `ru`.
 Invalid values fall back to `auto`; all other persisted data remains unchanged.
 
+Version 6 adds an `alts` array of normalized keys for independent
+alternate-character records. Normalization in `Relationships.lua` removes
+invalid, missing, self-referencing, and duplicate links within one card. One
+record can appear in alternate lists on different cards; existing records,
+labels, and notes are preserved.
+
 ## Localization
 
 English is the fallback dictionary. Every other dictionary must contain the

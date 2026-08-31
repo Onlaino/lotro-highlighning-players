@@ -2,7 +2,7 @@ HighlightPlayers = HighlightPlayers or {}
 
 HighlightPlayers.Constants = {
     DataKey = "HighlightPlayers",
-    DataVersion = 5,
+    DataVersion = 6,
     LabelNameMaxLength = 32,
     Indicator = {
         DefaultMaxWidth = 112,

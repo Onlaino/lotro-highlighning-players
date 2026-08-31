@@ -65,7 +65,31 @@ record; selecting `All` does not change the form's current label.
 `Search` matches part of a name and is case-insensitive for ordinary Latin
 names. Under `All`, it searches the entire database; under a label, only that
 category. Notes are not searched. Click a player name to edit its name, label,
-or note, or to remove the record.
+note, alternate-character list, or to remove the record.
+
+### Alternate characters
+
+Open a character card. Enter a nickname under `Alternate characters` and click
+`Add alt`. If the card is new, this action first saves it with the current name,
+label, and note.
+
+- If the nickname is new, a separate record is created with the current
+  character's label and an empty note.
+- If the record already exists, its label and note remain unchanged; only the
+  link to the current card is added.
+- An alternate remains an independent record that can be found, opened, and
+  edited in the main list.
+- `Remove link` removes only the association from the card, not the alternate's
+  saved record.
+
+The same nickname can be linked as an alternate from different player cards. A
+character cannot be its own alternate or be added twice to the same card.
+
+The `Alternate characters and links` section shows the whole group: directly
+linked characters and characters reached through other alternates. A `direct
+link` row can be removed with `Unlink`; a `linked through another character`
+row is available for group navigation. Click a name in a row to open that
+character's card.
 
 ## Managing labels
 
@@ -146,9 +170,9 @@ NPC with the same name is technically indistinguishable from a saved player.
 
 ## Data storage
 
-Labels, player records, notes, window positions, and settings are stored in
-LOTRO PluginData at server scope. Your characters on the same server share a
-database; different servers remain isolated.
+Labels, player records, notes, alternate-character links, window positions,
+and settings are stored in LOTRO PluginData at server scope. Your characters on
+the same server share a database; different servers remain isolated.
 
 Back up PluginData before manual experiments or installing a test build. A
 normal plugin update does not require deleting saved data.

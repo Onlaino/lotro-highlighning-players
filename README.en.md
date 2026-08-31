@@ -14,6 +14,7 @@ target.
 
 - custom labels with editable names and RGB colors;
 - notes and search across saved characters;
+- alternate-character links in a player's card;
 - a target indicator with a note tooltip and quick note editing;
 - English, French, German, and Russian interface languages;
 - player management through the UI and `/eh` chat commands;

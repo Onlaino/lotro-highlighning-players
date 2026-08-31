@@ -2,7 +2,7 @@
 
 [Русский](roadmap.md) | **English** · [Documentation index](README.md)
 
-This document describes development directions after `v0.2.0`. Priorities may
+This document describes development directions after `v0.3.0`. Priorities may
 change after in-client testing and user feedback. A milestone number is not a
 release-date promise: work may be split or moved when a prototype reveals an
 API limitation.
@@ -13,8 +13,9 @@ API limitation.
 |---|---|---|
 | `v0.1` | Released | Custom labels, notes, search, and target indicator |
 | `v0.2` | Released | Localization and faster access to target information |
-| `v0.3` | Planned | Import/export, notifications, and session history |
-| `v0.4` | Research | Aliases, profiles, and an extended player model |
+| `v0.3` | Released | Alternate-character links |
+| Next milestone | Planned | Import/export, notifications, and history |
+| `v0.4` | Research | Profiles and an extended player model |
 
 The backlog contains unassigned ideas. Deferred items cannot currently be
 implemented reliably with the available LOTRO Lua API.
@@ -102,7 +103,17 @@ clearly.
 - reset window and indicator positions;
 - recover elements moved outside the visible screen.
 
-## v0.3 — portability and quick reactions
+## v0.3 — alternate-character links
+
+Status: released in `v0.3.0`.
+
+An alternate character remains an independent record but can be linked from
+any character card. A new nickname inherits that card's label; an existing
+record is never overwritten. One record can belong to multiple groups, and
+removing one link does not delete the alternate record or its other links. A
+card shows every character reachable through a chain of links.
+
+## Next milestone — portability and quick reactions
 
 Goal: protect user data and make labels more useful during frequent target
 changes.
@@ -139,7 +150,7 @@ be evaluated separately for privacy and PluginData size.
 
 Goal: support long-term databases and multiple gameplay contexts.
 
-### Player aliases
+### Extended player aliases
 
 - multiple names for one record;
 - exact target matching by primary name or alias;

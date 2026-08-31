@@ -3,7 +3,7 @@
   <Information>
     <Name>Enemy Highlight</Name>
     <Author>Onlaino</Author>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Description>Assign custom colored labels to players and show the selected target's saved label.</Description>
   </Information>
   <Package>HighlightPlayers.Main</Package>

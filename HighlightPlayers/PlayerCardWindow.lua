@@ -6,8 +6,8 @@ local L = HighlightPlayers.Localization
 function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     local settings = storage:GetData().settings.cardWindow
     local window = Turbine.UI.Lotro.Window()
-    local width = 430
-    local height = 470
+    local width = 540
+    local height = 670
     local left, top = HighlightPlayers.Util.ClampPosition(
         settings.left,
         settings.top,
@@ -68,7 +68,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     local noteBox = Turbine.UI.Lotro.TextBox()
     noteBox:SetParent(window)
     noteBox:SetPosition(20, 250)
-    noteBox:SetSize(width - 57, 130)
+    noteBox:SetSize(width - 57, 92)
     noteBox:SetBackColor(Turbine.UI.Color(0.05, 0.05, 0.05))
     noteBox:SetForeColor(Turbine.UI.Color.White)
     noteBox:SetFont(Turbine.UI.Lotro.Font.Verdana14)
@@ -77,13 +77,47 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
     local noteScroll = Turbine.UI.Lotro.ScrollBar()
     noteScroll:SetParent(window)
     noteScroll:SetPosition(width - 34, 250)
-    noteScroll:SetSize(10, 130)
+    noteScroll:SetSize(10, 92)
     noteScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
     noteBox:SetVerticalScrollBar(noteScroll)
 
+    local alternativesTitle = Turbine.UI.Label()
+    alternativesTitle:SetParent(window)
+    alternativesTitle:SetPosition(20, 353)
+    alternativesTitle:SetSize(width - 40, 20)
+    alternativesTitle:SetFont(Turbine.UI.Lotro.Font.Verdana16)
+    alternativesTitle:SetText(L.Get("related_characters"))
+
+    local alternativeBox = Turbine.UI.Lotro.TextBox()
+    alternativeBox:SetParent(window)
+    alternativeBox:SetPosition(20, 373)
+    alternativeBox:SetSize(width - 190, 22)
+    alternativeBox:SetBackColor(Turbine.UI.Color(0.05, 0.05, 0.05))
+    alternativeBox:SetForeColor(Turbine.UI.Color.White)
+    alternativeBox:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+    alternativeBox:SetMultiline(false)
+
+    local addAlternativeButton = Turbine.UI.Lotro.Button()
+    addAlternativeButton:SetParent(window)
+    addAlternativeButton:SetPosition(width - 160, 373)
+    addAlternativeButton:SetSize(140, 22)
+    addAlternativeButton:SetText(L.Get("add_alternative"))
+
+    local alternativeList = Turbine.UI.ListBox()
+    alternativeList:SetParent(window)
+    alternativeList:SetPosition(20, 402)
+    alternativeList:SetSize(width - 57, 165)
+
+    local alternativeScroll = Turbine.UI.Lotro.ScrollBar()
+    alternativeScroll:SetParent(window)
+    alternativeScroll:SetPosition(width - 34, 402)
+    alternativeScroll:SetSize(10, 165)
+    alternativeScroll:SetOrientation(Turbine.UI.Orientation.Vertical)
+    alternativeList:SetVerticalScrollBar(alternativeScroll)
+
     local messageLabel = Turbine.UI.Label()
     messageLabel:SetParent(window)
-    messageLabel:SetPosition(20, 386)
+    messageLabel:SetPosition(20, 575)
     messageLabel:SetSize(width - 40, 30)
     messageLabel:SetFont(Turbine.UI.Lotro.Font.Verdana12)
     messageLabel:SetTextAlignment(Turbine.UI.ContentAlignment.MiddleLeft)
@@ -91,19 +125,19 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
 
     local saveButton = Turbine.UI.Lotro.Button()
     saveButton:SetParent(window)
-    saveButton:SetPosition(20, 426)
+    saveButton:SetPosition(20, 621)
     saveButton:SetSize(110, 22)
     saveButton:SetText(L.Get("save_button"))
 
     local deleteButton = Turbine.UI.Lotro.Button()
     deleteButton:SetParent(window)
-    deleteButton:SetPosition(160, 426)
+    deleteButton:SetPosition(math.floor((width - 110) / 2), 621)
     deleteButton:SetSize(110, 22)
     deleteButton:SetText(L.Get("delete_button"))
 
     local cancelButton = Turbine.UI.Lotro.Button()
     cancelButton:SetParent(window)
-    cancelButton:SetPosition(300, 426)
+    cancelButton:SetPosition(width - 130, 621)
     cancelButton:SetSize(110, 22)
     cancelButton:SetText(L.Get("cancel"))
 
@@ -120,6 +154,77 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         settings.left = window:GetLeft()
         settings.top = window:GetTop()
         storage:Save()
+    end
+
+    local function refreshAlternatives()
+        alternativeList:ClearItems()
+
+        if originalKey == nil then
+            return
+        end
+
+        for _, record in ipairs(
+            relationships:GetRelatedRecords(originalKey)
+        ) do
+            local row = Turbine.UI.Control()
+            row:SetSize(alternativeList:GetWidth(), 30)
+
+            local name = Turbine.UI.Lotro.Button()
+            name:SetParent(row)
+            name:SetPosition(10, 1)
+            name:SetSize(
+                row:GetWidth() - (record.direct and 120 or 12),
+                28
+            )
+            name:SetFont(Turbine.UI.Lotro.Font.Verdana14)
+            local label = labels:GetById(record.labelId)
+            name:SetText(
+                record.name ..
+                (label ~= nil and "  [" .. label.name .. "]" or "") ..
+                "  — " .. L.Get(
+                    record.direct and "direct_link" or "group_member"
+                )
+            )
+            name.Click = function()
+                window.OpenExisting(record.key)
+            end
+
+            if label ~= nil then
+                local swatch = Turbine.UI.Control()
+                swatch:SetParent(row)
+                swatch:SetPosition(2, 6)
+                swatch:SetSize(5, 18)
+                swatch:SetBackColor(labels:GetColor(label))
+                swatch:SetMouseVisible(false)
+            end
+
+            if record.direct then
+                local removeButton = Turbine.UI.Lotro.Button()
+                removeButton:SetParent(row)
+                removeButton:SetPosition(row:GetWidth() - 110, 4)
+                removeButton:SetSize(108, 22)
+                removeButton:SetText(L.Get("remove_alternative"))
+                removeButton.Click = function()
+                    local succeeded, result, persisted =
+                        relationships:RemoveConnection(originalKey, record.key)
+                    if not succeeded then
+                        showMessage(result, true)
+                        return
+                    end
+
+                    if not persisted then
+                        showMessage(L.Get("saved_memory_but_failed"), true)
+                        refreshAlternatives()
+                        return
+                    end
+
+                    showMessage(L.Get("alternative_removed"), false)
+                    refreshAlternatives()
+                end
+            end
+
+            alternativeList:AddItem(row)
+        end
     end
 
     window.Hide = function()
@@ -144,6 +249,7 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         window:SetText(L.Get("add_player"))
         nameBox:SetText(prefilledName or "")
         noteBox:SetText("")
+        alternativeBox:SetText("")
         if initialLabel ~= nil then
             labelSelector:SetLabelId(initialLabel.id, false)
         end
@@ -170,13 +276,15 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         noteBox:SetText(record.note or "")
         labelSelector:SetLabelId(record.labelId, false)
         deleteButton:SetVisible(true)
+        alternativeBox:SetText("")
+        refreshAlternatives()
         showMessage(nil, false)
         window:SetVisible(true)
         window:Activate()
         nameBox:Focus()
     end
 
-    saveButton.Click = function()
+    local function saveCurrentPlayer()
         local succeeded, result, persisted = relationships:SavePlayer(
             originalKey,
             nameBox:GetText(),
@@ -186,16 +294,53 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
 
         if not succeeded then
             showMessage(result, true)
+            return false
+        end
+
+        originalKey = result.key
+        isNew = false
+        deleteButton:SetVisible(true)
+
+        if not persisted then
+            showMessage(L.Get("saved_memory_but_failed"), true)
+            refreshAlternatives()
+            return false
+        end
+
+        return true
+    end
+
+    saveButton.Click = function()
+        if not saveCurrentPlayer() then
+            return
+        end
+
+        window.Hide()
+    end
+
+    addAlternativeButton.Click = function()
+        if not saveCurrentPlayer() then
+            return
+        end
+
+        local succeeded, result, persisted = relationships:AddAlternative(
+            originalKey,
+            alternativeBox:GetText()
+        )
+        if not succeeded then
+            showMessage(result, true)
             return
         end
 
         if not persisted then
             showMessage(L.Get("saved_memory_but_failed"), true)
+            refreshAlternatives()
             return
         end
 
-        originalKey = result.key
-        window.Hide()
+        alternativeBox:SetText("")
+        showMessage(L.Get("alternative_added", { name = result.name }), false)
+        refreshAlternatives()
     end
 
     deleteButton.Click = function()
@@ -245,10 +390,13 @@ function HighlightPlayers.PlayerCardWindow.New(storage, relationships, labels)
         nameLabel:SetText(L.Get("player_name"))
         labelTitle:SetText(L.Get("choose_one_label"))
         noteLabel:SetText(L.Get("note"))
+        alternativesTitle:SetText(L.Get("related_characters"))
+        addAlternativeButton:SetText(L.Get("add_alternative"))
         saveButton:SetText(L.Get("save_button"))
         deleteButton:SetText(L.Get("delete_button"))
         cancelButton:SetText(L.Get("cancel"))
         showMessage(nil, false)
+        refreshAlternatives()
     end
 
     local localeListener = L.AddListener(applyLocale)
